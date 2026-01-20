@@ -179,12 +179,13 @@ function smr32g() {
 return random(-1,1) * 32
 
 }
+ 
 function advancedCollision(sprite1, sprite2, ctx) {
     // 1. Get intersection box
-    const x = Math.max(sprite1.x, sprite2.x);
-    const y = Math.max(sprite1.y, sprite2.y);
-    const width = Math.min(sprite1.x + sprite1.w, sprite2.x + sprite2.w) - x;
-    const height = Math.min(sprite1.y + sprite1.h, sprite2.y + sprite2.h) - y;
+     x = Math.max(sprite1.x, sprite2.x);
+     y = Math.max(sprite1.y, sprite2.y);
+    width = Math.min(sprite1.x + sprite1.w, sprite2.x + sprite2.w) - x;
+     height = Math.min(sprite1.y + sprite1.h, sprite2.y + sprite2.h) - y;
 
     // 2. If no intersection, no collision
     if (width <= 0 || height <= 0) return false;
