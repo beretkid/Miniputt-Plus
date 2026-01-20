@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+/* Add basic CSS styles if needed, e.g., to position the divs correctly */
+</style>
+</head>
+<body>
+
+
+<img hidden=true src="pod.png" id="pod">
+
+<img hidden=true src="a2.png" id="rock1">
+<img hidden=true src="p2.png" id="p1">
+<img hidden=true src="p1.png" id="p2">
+<img hidden=true src="sun.png" id="sunSprite">
+<img hidden=true src="t1.png" id="t1">
+<img hidden=true src="t2.png" id="t2">
+<img hidden=true src="t3.png" id="t3">
+<img hidden=true src="t4.png" id="t4">
+<img hidden=true src="t5.png" id="t5">
+<img hidden=true src="p3.png" id="p3">
+<img hidden=true src="freighter.png" id="freightSprite">
+<img hidden=true src="fighter.png" id="fighterSprite">
+<!-- North Wall (Far Wall) -->
+
+<div class="tiled-backgroundf" id="sky" style=" background-image: url('stars.png'); 
+    background-repeat: repeat; 
+    min-height: 100vh; 
+    border: 0px;
+    background-position: 5px 0px;
+	position: fixed; /* Fixes them to the viewport */
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+	 background-Size: 1000px 1000px;
+	 filter: bloom(10);" >
+</div>
+
+<canvas id="visuals" width="100" height="100" style="position:absolute;top:0%;left:0%;border:0px solid;border-color:#0f0f0f;z-index:5" ></canvas>
+
+<script>
+// --- Global Variables (FIXED) ---
+var canvas = document.getElementById('visuals');
+var ctx = canvas.getContext("2d");
+var debug=false
+var selectedTile = [0,0]
+var rock1 = document.getElementById("rock1")
+
+var gFree = document.getElementById("gFree")
+
+
+var gHold = document.getElementById("gHold")
+var dronesprite = document.getElementById("pod")
+var wd=false
+var sd=false
+
+var c0 = document.getElementById("c0")
+var c1 = document.getElementById("c1")
+var c2 = document.getElementById("c2")
+var c3 = document.getElementById("c3")
+var c4 = document.getElementById("c4")
+var c5 = document.getElementById("c5")
+var t1 = document.getElementById("t1")
+var t2 = document.getElementById("t2")
+var t3 = document.getElementById("t3")
+var t4 = document.getElementById("t4")
+var freightSprite = document.getElementById("freightSprite")
+//var t4 = document.getElementById("t4")
+// Add new wall references:
+
+var swal = document.getElementById("SouthWall")
+var ewal = document.getElementById("EastWall")
+var wwal = document.getElementById("WestWall")
+var newPosX = 0
+var newPosY = 0
+var ukp = false
+var speedDiff=0
+var speed=0
+var driving=true
+var off=Math.PI*-2
+var dkp = false
+var gt=0
+var heat=1
+var rkp = false
+var zd = false
+var hunger = 1000000
+var lkp = false
+var ox = 0
+var oy = 0
+var hoff=0
+var ox3 = 0
+var zoom=5
+var selectedTile = [0,0]
+var oy3 = 0
+var ox2 = 0
+var sizeoff=1
+var oy2 = 0
+var cc = gFree
+var boxTop = document.getElementById("BoxTop")
+var boxSide = document.getElementById("BoxSide")
+var mouseX; 
+var mouseY; 
+var mx = 0;
+var my = 0;
+var smoothX = 0;
+var smoothY = 0;
+
+var curr2
+var xo
+var drone = {x:200,y:200,t:0,w:32,h:32}
+var turnSpeed=0
+var mode = "None"
+var yo
+var x
+var y
+var pmode=false
+var ad=false
+var trueTurn=0
+var ed=false
+var rd = false
+var sx=0
+var sy=0
+var qd=false
+var sky =document.getElementById("sky")
+var dd=false
+var GRID_SIZE = 32
+const easingAmount = 0.05; 
+canvas.width = window.innerWidth * 1
+canvas.height = window.innerHeight * 1
+var w = canvas.width;
+var h = canvas.height;
+const canvasCenterX = canvas.width / 2;
+const canvasCenterY = canvas.height / 2;
+function movedir(x,y,dir,amnt) {
+return [(Math.sin((dir*-1) * Math.PI/180)*Math.round(amnt*100)/100),Math.cos((dir*-1) * Math.PI/180)]
+}
+
+var entities = [{x:75,y:97,w:150,h:150,sprite:p3,dist:9,type:"Planet",sx:0,sy:0,t:0},{x:0,y:0,w:32,h:32,sprite:rock1,dist:1,type:"astroid",t:0,sx:0,sy:0},{x:200,y:200,w:64,h:64,sprite:freightSprite,dist:1,type:"freighter",t:0,sx:0,sy:0,t:0}]
+var usedPositions = [{x:stg(w / 2 ),y:stg(h / 2)}]
+function getDirectionAwayFrom(origin, target) {
+  const dx_towards = target.x - origin.x;
+  const dy_towards = target.y - origin.y;
+  const distance = Math.sqrt(dx_towards * dx_towards + dy_towards * dy_towards);
+  if (distance === 0) {
+    return { x: 0, y: 0 };
+  }
+  const dx_normalized_towards = dx_towards / distance;
+  const dy_normalized_towards = dy_towards / distance;
+  const dx_away = -dx_normalized_towards;
+  const dy_away = -dy_normalized_towards;
+  return { x: dx_away, y: dy_away };
+}
+document.addEventListener('mousemove', (event) => {
+  mouseX = event.clientX;
+  mouseY = event.clientY;
+  mx = event.clientX;
+  my = event.clientY;
+});
+function random(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+function calcDist(x1,y1,x2,y2) {
+dx = x2 - x1
+dy = y2 - y1
+return Math.sqrt(dx * dx + dy * dy)
+}
+function calcDistXY(x1,y1,x2,y2) {
+dx = x2 - x1
+dy = y2 - y1
+return {x:dx,y:dy}
+}
+function smr32g() {
+return random(-1,1) * 32
+
+}
+function advancedCollision(sprite1, sprite2, ctx) {
+    // 1. Get intersection box
+    const x = Math.max(sprite1.x, sprite2.x);
+    const y = Math.max(sprite1.y, sprite2.y);
+    const width = Math.min(sprite1.x + sprite1.w, sprite2.x + sprite2.w) - x;
+    const height = Math.min(sprite1.y + sprite1.h, sprite2.y + sprite2.h) - y;
+
+    // 2. If no intersection, no collision
+    if (width <= 0 || height <= 0) return false;
+
+    // 3. Extract pixel data for the overlapping region
+    const data1 = ctx.getImageData(x - sprite1.x, y - sprite1.y, width, height).data;
+    const data2 = ctx.getImageData(x - sprite2.x, y - sprite2.y, width, height).data;
+
+    // 4. Iterate over pixels (4 bytes per pixel: RGBA)
+    for (let i = 3; i < data1.length; i += 4) {
+        if (data1[i] > 0 && data2[i] > 0) { // If both have alpha
+            return true; // Collision!
+        }
+    }
+    return false;
+}
+function mr32g() {
+return {x:smr32g(),y:smr32g()}
+}
+function collisionCheck(s1, s2) {
+//s1 should always be the player.
+px=s1.x 
+py=s1.y 
+ 
+  if (px > s2.x-s2.w/2 && px < (s2.x+s2.w/2) && py > s2.y-s2.h/2 && py < (s2.y+s2.h/2) ){
+		
+    
+	 // push the player back the targets width / 2
+    return true;
+  } else {
+
+  return false;
+}
+}
+ document.addEventListener('keyup', function(event) {
+ kc = event.keyCode
+ if (kc == 68) {
+
+			dd=false
+			
+		  }
+		  		  if (kc == 65) {
+			//FEED HIM!!! DO IT FEED HIM NOW!!! FEED HIM!!!
+			ad=false
+			
+		  }
+		  		  		  if (kc == 87) {
+			//FEED HIM!!! DO IT FEED HIM NOW!!! FEED HIM!!!
+			wd=false
+			
+		  }
+		  		  		  		  if (kc == 83) {
+			//FEED HIM!!! DO IT FEED HIM NOW!!! FEED HIM!!!
+			sd=false
+			
+		  }
+		  		  		  		  if (kc == 81) {
+			//FEED HIM!!! DO IT FEED HIM NOW!!! FEED HIM!!!
+			qd=false
+			
+		  }
+		  	  		  		  if (kc == 69) {
+			//FEED HIM!!! DO IT FEED HIM NOW!!! FEED HIM!!!
+			ed=false
+			
+		  }
+		  	  		  	if (kc == 82) {
+
+			rd=false
+			
+		  }
+		  		  		  		  		  		  if (kc == 90) {
+			
+			zd=false
+			
+		  }
+ })
+    document.addEventListener('keydown', function(event) {
+       kc = event.keyCode
+		  console.log(kc)
+		  if (kc == 70) {
+			//KILL HIM!!! DO IT KILL HIM NOW!!! KILL HIM!!!!
+			mode = "Burn"
+			
+		  }
+		  		  	if (kc == 68) {
+
+			dd=true
+			
+		  }
+		  	  		  	if (kc == 82) {
+
+			rd=true
+			
+		  }
+		  		  if (kc == 65) {
+			//FEED HIM!!! DO IT FEED HIM NOW!!! FEED HIM!!!
+			ad=true
+			
+		  }
+		  		  		  if (kc == 81) {
+			//FEED HIM!!! DO IT FEED HIM NOW!!! FEED HIM!!!
+			qd=true
+			
+		  }
+		  	  		  		  if (kc == 69) {
+			//FEED HIM!!! DO IT FEED HIM NOW!!! FEED HIM!!!
+			ed=true
+			
+		  }
+		  		  if (kc == 70) {
+			//FEED HIM!!! DO IT FEED HIM NOW!!! FEED HIM!!!
+			mode="Feed"
+			
+		  }
+		  		  		  		  if (kc == 87) {
+			//FEED HIM!!! DO IT FEED HIM NOW!!! FEED HIM!!!
+			wd=true
+			
+		  }
+		  		  		  		  if (kc == 83) {
+			//FEED HIM!!! DO IT FEED HIM NOW!!! FEED HIM!!!
+			sd=true
+			
+		  }
+		  		  		  		  		  if (kc == 90) {
+			//FEED HIM!!! DO IT FEED HIM NOW!!! FEED HIM!!!
+			zd=true
+			
+			pmode=!pmode
+		  }
+		 
+				
+
+			
+		  //try using list like mathematical thingys to sort distances
+    });
+	 
+function tick() {
+sky.style.backgroundPosition = `${-drone.x/10+hoff}px ${-drone.y/10+hoff}px`;
+
+
+	 if (ed) {
+zoom=zoom*1.01
+}
+if (qd) {
+zoom=zoom*0.99
+}
+zoom=Math.max(0,zoom)
+	 ctx.save()
+	  
+	 ctx.translate(w/2,h/2)
+    ctx.scale(zoom,zoom)
+	 
+	ox = drone.x - canvas.width / 2;
+    oy = drone.y - canvas.height / 2;
+
+
+    
+	 
+    setTimeout(() => { 
+        ctx.clearRect(-100000,-100000,w*1000,h*1000)
+		  const newPosX = ((smoothX - (w / 2)) * -0.025)/zoom
+        const newPosY = ((smoothY - (h / 2)) * -0.04)/zoom
+        ctx.save()
+		  
+			
+		 	
+		  	osx=sx
+			osy=sy
+		    for (i in entities) {
+            curr = entities[i]
+				
+				ctx.save()
+
+
+if (curr.type=="astroid"){
+curr.t+=0
+curr.x+=0.5
+}
+if (curr.type=="freighter") {
+curr.sx=(Math.sin((curr.t*-1) * Math.PI/180))
+curr.sy=(Math.cos((curr.t*-1) * Math.PI/180))
+
+curr.t+=1
+}
+if (curr.dist==1) {
+if(advancedCollision(drone, curr,ctx)){
+console.log("AGHH!!!!!")
+
+aDir=getDirectionAwayFrom(drone, curr)
+
+sx=sx+aDir.x/50
+sy=sy+aDir.y/50
+totalVelocity= Math.abs(sx+sy)
+if(speedDiff*10>0.8) {
+turnSpeed+= random(totalVelocity*-3,totalVelocity*3)
+}
+
+console.log(aDir,sx)
+}
+}
+
+
+          curr.x+=curr.sx
+			 curr.y+=curr.sy
+			 ctx.translate((curr.x-drone.x)/curr.dist,(curr.y-drone.y)/curr.dist)
+			 ctx.rotate(curr.t * Math.PI/180)
+				//ctx.translate((curr.h/off),(curr.h/off))
+			 
+
+			   
+				ctx.drawImage(curr.sprite,-curr.w/2,-curr.h/2,curr.w,curr.h)
+				ctx.restore()
+				if(debug){
+				ctx.fillStyle="Red"
+				cwi=(curr.w)
+				chi=(curr.h)
+				cxi=curr.x-curr.w/2
+				cyi=curr.y-curr.h/2
+				ctx.fillRect(cxi-drone.x,cyi-drone.y,cwi,chi)
+				}
+				//console.log(Math.round(curr.x + drone.x),Math.round(curr.y + drone.y))
+				
+}
+ctx.restore()
+// Ensure 'random' is a defined function, e.g., using Math.floor(Math.random() * 101)
+const rng = random(0, 10000); 
+const GRID_SIZE = 32; // Define the grid size
+
+
+
+	 		   
+
+
+
+			  ctx.restore()
+            ctx.save()
+        if (driving) {
+		  if (dd) {
+		               							if(pmode){
+							sx+=0.001
+							}else{
+         turnSpeed+= 0.025+Math.abs(speed*2)
+				}
+				}
+					   if (ad) {
+						             							if(pmode){
+							sx-=0.001
+							}else{
+             turnSpeed -= 0.025+Math.abs(speed*2)
+				 }
+				}
+//					  if (zd) {
+//		hoff+=0.1
+//					  }
+				 		   if (wd) {
+              							if(pmode){
+							sy-=0.001
+							}else{
+           speed=speed+0.00085
+			  }
+				}
+							if (sd) {
+							if(pmode){
+							sy+=0.001
+							}else{
+           speed=speed-0.00085
+			  }
+				}
+				if(rd) {
+				//brakes, (slow the FUCK DOWN WE'RE GONNA CRASH!!!!!!!)
+ speed=speed/1.0005
+ //dir+awaydir/2 -- just curious what something like that would do, try something like that later.
+ sx=sx/1.01
+sy=sy/1.01
+turnSpeed=turnSpeed/1.1
+				} 
+				 heat+= speed*1000
+				 heat=(heat/1.01)-0.1
+				 heat=Math.min(Math.max(1,heat),50)
+				 turnSpeed=(turnSpeed)/1.02
+			 	 speed=speed/1.1
+				 trueTurn = trueTurn-(trueTurn-drone.t)/10
+sx=sx+ (Math.sin((trueTurn*-1) * Math.PI/180)*Math.round(speed*100)/100)
+sy=sy+  (Math.cos((trueTurn*-1) * Math.PI/180)*Math.round(speed*100)/100)
+}
+drone.t += turnSpeed
+drone.x += sx
+drone.y += sy
+
+				
+				//offsets=movedir(0,0,trueTurn,speed*100) 
+offsets=[0,0]
+				//console.log(offsets)
+				ctx.translate(w/2-offsets[0], h/2-offsets[1]);
+		
+    ctx.scale(zoom/10,zoom/10)
+ctx.rotate(trueTurn* (Math.PI/180))
+
+    
+    
+if(driving) {
+				
+				ctx.drawImage(dronesprite,-64,-64,128,128)
+				sizeoff=random(0,4)
+				sizeoff2=random(-1*(speed*1000)/8,1*(speed*1000)/8)
+				if(speed<0.001)
+				timg=t1
+				}
+				if(speed>0.001) {
+				timg=t2
+				}
+								if(speed>0.002) {
+				timg=t3
+				}
+												if(speed>0.004) {
+				timg=t4
+				}
+					//gah = 90-(Math.sin(gt/10))*-10
+					gah = 50+heat
+				ctx.filter = `brightness(${gah}%)`
+				ctx.drawImage(timg,-12+sizeoff2,-48-((speed*2000)+sizeoff),24,24+(speed*2000)+sizeoff)
+				
+				ctx.filter = ``
+				ctx.restore();
+				
+		
+
+			gt+=1
+			console.log(speedDiff)
+			speedDiff=Math.abs((sx-osx)+(sy-osy))
+        tick() 
+    }, 10);
+}
+ function stg(thing) {
+return Math.round(thing / 32) * 32
+ }
+tick(); 
+</script>
+
+</body>
+</html>

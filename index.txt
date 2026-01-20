@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+/* Add basic CSS styles if needed, e.g., to position the divs correctly */
+</style>
+</head>
+<body>
+
+<div class="tiled-backgroundf" id="ptop" style=" background-image: url('PTileTop.png'); 
+    background-repeat: repeat; 
+    min-height: 100vh; 
+    border: 0px;
+    background-position: 5px 0px;
+	position: fixed; /* Fixes them to the viewport */
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+	 background-Size: 32px 32px;
+	 filter: bloom(1);
+	 z-index: 3;" >
+</div>
+<img hidden=true src="BoxTop.png" id="BoxTop">
+<img hidden=true src="BoxTop.png" id="BoxTop">
+<img hidden=true src="Spores.png" id="BigTumor">
+<img hidden=true src="Vines.png" id="Vines">
+<img hidden=true src="Tumor.png" id="Tumor">
+<img hidden=true src="GripperFree.png" id="gFree">
+<img hidden=true src="drone.png" id="drone">
+<img hidden=true src="GripperHold.png" id="gHold">
+<img hidden=true src="FTNeut.png" id="FTNeut">
+<img hidden=true src="Vines2.png" id="Vines2">
+<img hidden=true src="Vines3.png" id="Vines3">
+<img hidden=true src="Vines4.png" id="Vines4">
+<img hidden=true src="SparseVines.png" id="SVines1">
+<img hidden=true src="Flesh.png" id="Flesh">
+<img hidden=true src="SparseVines2.png" id="SVines2">
+<img hidden=true src="C0.png" id="c0">
+<img hidden=true src="C1.png" id="c1">
+<img hidden=true src="C2.png" id="c2">
+<img hidden=true src="C1.png" id="c3">
+<img hidden=true src="C4.png" id="c4">
+
+<img hidden=true src="Fire1.png" id="f1">
+<img hidden=true src="Fire2.png" id="f2">
+<img hidden=true src="Fire3.png" id="f3">
+
+<img src="CamOverlay.png" style="
+position: fixed; 
+    top: 0px;
+    left: 0px;
+ width: 100vw;
+ height: 100vh;
+ z-index: 10;
+opacity: 0.6;
+">
+<!-- North Wall (Far Wall) -->
+<div class="NW-Background" id="NorthWall" style=" background-image: url('NorthWall.png'); 
+    background-repeat: repeat; 
+    border: 0px;
+    background-position: 0px bottom; 
+    background-origin: padding-box;
+	position: fixed; 
+    top: -20px;
+    left: 0;
+    width: 120vw;
+    height: 128px;
+    margin: 0;
+    padding: 0;
+	 z-index: 7;" >
+</div>
+
+<!-- South Wall (Close Wall) - Requires 'SouthWall.png' image -->
+<div class="SW-Background" id="SouthWall" style=" background-image: url('SouthWall.png'); 
+    background-repeat: repeat; 
+    border: 0px;
+    background-position: 0px bottom; 
+    position: fixed; 
+    bottom: -20px; 
+    left: 0;
+    width: 100vw;
+    height: 128px;
+    margin: 0;
+    padding: 0;
+	 z-index: 7;" >
+</div>
+
+<!-- East Wall (Right Wall) - Requires 'EastWall.png' image -->
+<div class="EW-Background" id="EastWall" style=" background-image: url('EastWall.png'); 
+    background-repeat: repeat; 
+    border: 0px;
+    background-position: right 0px; 
+    position: fixed; 
+    top: 0;
+    right: -20px; 
+    height: 100vh;
+    width: 128px;
+    margin: 0;
+    padding: 0;
+	 z-index: 6;" > 
+</div>
+
+<!-- West Wall (Left Wall) - Requires 'WestWall.png' image -->
+<div class="WW-Background" id="WestWall" style=" background-image: url('WestWall.png'); 
+    background-repeat: repeat; 
+    border: 0px;
+    background-position: left 0px; 
+    position: fixed; 
+    top: 0;
+    left: -20px; 
+    height: 100vh;
+    width: 128px;
+    margin: 0;
+    padding: 0;
+	 z-index: 6;" >
+</div>
+
+<div class="tiled-backgroundg" id="grain" style=" background-image: url('Grain.png'); 
+    background-repeat: repeat; 
+    min-height: 100vh; 
+    border: 0px;
+    background-position: 5px 0px;
+	position: fixed; 
+	
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+	 opacity: 0.6;
+	 z-index: 7;" >
+</div>
+<div class="tiled-backgroundm" id="pmid" style=" background-image: url('PTileMid.png'); 
+    background-repeat: repeat; 
+    min-height: 100vh; 
+    border: 0px;
+    background-position: 5px 0px;
+	position: fixed; 
+    top: 0;
+    left: 0;
+	 background-Size: 32px 32px;
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+	 z-index: 2;" >
+</div>
+<div class="tiled-backgroundb" id="pbot" style="background-image: url('PTileBottom.png'); 
+    background-repeat: repeat; 
+    min-height: 100vh; 
+    border: 0px;
+    background-position: 0px 0px;
+	 background-Size: 32px 32px;
+	position: fixed; 
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+	 z-index: 1; ">
+</div>
+<div class="tiled-backgroundl" id="plig" style="background-image: url('Lighting.png'); 
+    background-repeat: repeat; 
+    min-height: 100vh; 
+    border: 0px;
+    background-position: 0px 0px;
+	 position: fixed; 
+    top: 0;
+    left: 0;
+	 background-Size: 32px 32px;
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+	 z-index: 4; ">
+</div>
+
+<canvas id="visuals" width="100" height="100" style="position:absolute;top:0%;left:0%;border:0px solid;border-color:#0f0f0f;z-index:5"></canvas>
+<script>
+// --- Global Variables (FIXED) ---
+var canvas = document.getElementById('visuals');
+var ctx = canvas.getContext("2d");
+var ptop = document.getElementById("ptop")
+var pbot = document.getElementById("pbot")
+var selectedTile = [0,0]
+var plig = document.getElementById("plig")
+var pmid = document.getElementById("pmid") 
+var bigTumor = document.getElementById("BigTumor")
+var vines = document.getElementById("Vines")
+var vines2 = document.getElementById("Vines2")
+var vines3 = document.getElementById("Vines3")
+var tumor = document.getElementById("Tumor")
+var nwal = document.getElementById("NorthWall")
+var gFree = document.getElementById("gFree")
+var flesh = document.getElementById("Flesh")
+var svines = document.getElementById("SVines1")
+var svines2 = document.getElementById("SVines2")
+var gHold = document.getElementById("gHold")
+var dronesprite = document.getElementById("drone")
+var wd=false
+var sd=false
+
+var c0 = document.getElementById("c0")
+var c1 = document.getElementById("c1")
+var c2 = document.getElementById("c2")
+var c3 = document.getElementById("c3")
+var c4 = document.getElementById("c4")
+var c5 = document.getElementById("c5")
+// Add new wall references:
+
+var swal = document.getElementById("SouthWall")
+var ewal = document.getElementById("EastWall")
+var wwal = document.getElementById("WestWall")
+var newPosX = 0
+var newPosY = 0
+var ukp = false
+var dkp = false
+var rkp = false
+var hunger = 1000000
+var lkp = false
+var ox = 0
+var oy = 0
+var ox3 = 0
+var zoom=1
+var selectedTile = [0,0]
+var oy3 = 0
+var ox2 = 0
+var oy2 = 0
+var cc = gFree
+var boxTop = document.getElementById("BoxTop")
+var boxSide = document.getElementById("BoxSide")
+var speed = 0.4
+var mouseX; 
+var mouseY; 
+var mx = 0;
+var my = 0;
+var smoothX = 0;
+var smoothY = 0;
+var curr2
+var xo
+var drone = {x:200,y:200,t:0}
+var mode = "None"
+var yo
+var ad=false
+var ed=false
+var qd=false
+var dd=false
+var GRID_SIZE = 32
+const easingAmount = 0.05; 
+canvas.width = window.innerWidth * 1
+canvas.height = window.innerHeight * 1
+var w = canvas.width;
+var h = canvas.height;
+const canvasCenterX = canvas.width / 2;
+const canvasCenterY = canvas.height / 2;
+var entities = [{x:stg(w / 2 ),y:stg(h / 2),type:"cortex",sprite:bigTumor,size:32}]
+var usedPositions = [{x:stg(w / 2 ),y:stg(h / 2)}]
+function getDirectionAwayFrom(origin, target) {
+  const dx_towards = target.x - origin.x;
+  const dy_towards = target.y - origin.y;
+  const distance = Math.sqrt(dx_towards * dx_towards + dy_towards * dy_towards);
+  if (distance === 0) {
+    return { x: 0, y: 0 };
+  }
+  const dx_normalized_towards = dx_towards / distance;
+  const dy_normalized_towards = dy_towards / distance;
+  const dx_away = -dx_normalized_towards;
+  const dy_away = -dy_normalized_towards;
+  return { x: dx_away, y: dy_away };
+}
+document.addEventListener('mousemove', (event) => {
+  mouseX = event.clientX;
+  mouseY = event.clientY;
+  mx = event.clientX;
+  my = event.clientY;
+});
+function random(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+function smr32g() {
+return random(-1,1) * 32
+
+}
+function mr32g() {
+return {x:smr32g(),y:smr32g()}
+}
+ document.addEventListener('keyup', function(event) {
+ kc = event.keyCode
+ if (kc == 68) {
+
+			dd=false
+			
+		  }
+		  		  if (kc == 65) {
+			//FEED HIM!!! DO IT FEED HIM NOW!!! FEED HIM!!!
+			ad=false
+			
+		  }
+		  		  		  if (kc == 87) {
+			//FEED HIM!!! DO IT FEED HIM NOW!!! FEED HIM!!!
+			wd=false
+			
+		  }
+		  		  		  		  if (kc == 83) {
+			//FEED HIM!!! DO IT FEED HIM NOW!!! FEED HIM!!!
+			sd=false
+			
+		  }
+		  		  		  		  if (kc == 81) {
+			//FEED HIM!!! DO IT FEED HIM NOW!!! FEED HIM!!!
+			qd=false
+			
+		  }
+		  	  		  		  if (kc == 69) {
+			//FEED HIM!!! DO IT FEED HIM NOW!!! FEED HIM!!!
+			ed=false
+			
+		  }
+ })
+    document.addEventListener('keydown', function(event) {
+       kc = event.keyCode
+		  console.log(kc)
+		  if (kc == 70) {
+			//KILL HIM!!! DO IT KILL HIM NOW!!! KILL HIM!!!!
+			mode = "Burn"
+			
+		  }
+		  		  	if (kc == 68) {
+
+			dd=true
+			
+		  }
+		  		  if (kc == 65) {
+			//FEED HIM!!! DO IT FEED HIM NOW!!! FEED HIM!!!
+			ad=true
+			
+		  }
+		  		  		  if (kc == 81) {
+			//FEED HIM!!! DO IT FEED HIM NOW!!! FEED HIM!!!
+			qd=true
+			
+		  }
+		  	  		  		  if (kc == 69) {
+			//FEED HIM!!! DO IT FEED HIM NOW!!! FEED HIM!!!
+			ed=true
+			
+		  }
+		  		  if (kc == 70) {
+			//FEED HIM!!! DO IT FEED HIM NOW!!! FEED HIM!!!
+			mode="Feed"
+			
+		  }
+		  		  		  		  if (kc == 87) {
+			//FEED HIM!!! DO IT FEED HIM NOW!!! FEED HIM!!!
+			wd=true
+			
+		  }
+		  		  		  		  if (kc == 83) {
+			//FEED HIM!!! DO IT FEED HIM NOW!!! FEED HIM!!!
+			sd=true
+			
+		  }
+		  		  		  if (kc == 71) {
+			//GRAB HIM!!! DO IT GRAB HIM NOW!!! GRAB HIM!!!
+			mode = "Grab"
+		  }
+		  		  		  		  if (kc == 73) {
+			//INJECT HIM!!! DO IT INJECT HIM NOW!!! INJECT HIM!!!
+			mode = "Syringe"
+		  }
+		  		  		  		  		  if (kc == 32) {
+			if (mode == "Burn") {
+			for (i3 in entities) {
+			curr3 = entities[i3]
+			console.log(selectedTile)
+			xo = i3.x
+			yo = i3.y
+
+			if ( curr.x == selectedTile[0] && curr.y == selectedTile[1]) {
+			entities.splice(i3)
+			break
+			}
+			}
+			}  
+				
+				if (mode == "Feed") {
+				//Drop a corpse
+	rng=random(1,3)
+sprite=c0
+
+				
+				entities.push({type:"Corpse",x:mouseX,y:mouseY,sprite:sprite,size:15})
+			}
+			}
+		  
+    });
+function tick() {
+
+
+    if (mouseX !== undefined && mouseY !== undefined) {
+       
+		  selectedTile = [Math.floor(mx / 32) * 32,Math.floor(my / 32) * 32]
+		  //ctx.fillRect(selectedTile[0],selectedTile[1],32,32)
+        // --- MOUSE SMOOTHING (LERP) ---
+        smoothX += (mouseX - smoothX) * easingAmount;
+        smoothY += (mouseY - smoothY) * easingAmount;
+
+        // Use SMOOTHED positions for parallax calculations
+        const newPosX = ((smoothX - (w / 2)) * -0.025) 
+        const newPosY = ((smoothY - (h / 2)) * -0.04)
+
+        ptop.style.backgroundPosition = `${newPosX}px ${newPosY}px`;
+		  ox = newPosX
+		  oy = newPosY
+		  ox2 = newPosX * 1.5
+		  oy2 = newPosY * 1.5
+		  ox3 = newPosX * 1.1
+		  oy3 = newPosY * 1.1
+        pbot.style.backgroundPosition = `${newPosX * 0.5}px ${newPosY * 0.5}px`;
+		  plig.style.backgroundPosition = `${newPosX * 1.2}px ${newPosY * 1.2}px`;
+		  pmid.style.backgroundPosition = `${newPosX * 1.35}px ${newPosY * 1.35}px`;
+			
+            // --- WALLS DYNAMIC POSITIONING AND SCALING ---
+            const baseHeight = 128; 
+            const dynamicHeight = baseHeight - (newPosY * 2); 
+				const dynamicHeightX = baseHeight - (newPosX * 2); 
+
+            // North Wall (far wall)
+            nwal.style.backgroundSize = `100vw ${dynamicHeight}px`;
+			nwal.style.left = (newPosX - 20) + 'px'; 
+			nwal.style.top = (newPosY - 64) + 'px';
+			nwal.style.backgroundPositionX = `${newPosX * 1.01}px`;
+            
+            // South Wall (closer wall)
+				 swal.style.backgroundSize = `100vw ${dynamicHeight * -1}px`;
+            nwal.style.left = (newPosX - 20) + 'px'; 
+            swal.style.bottom = (-64 - (newPosY * 1.01)) + 'px';
+            swal.style.backgroundPositionY = `${-20 + (newPosY * 1.01)}px`;
+
+            // East Wall (right wall)
+            ewal.style.right = (-64 + (newPosX * -1.01)) + 'px';
+            ewal.style.top = (newPosY) + 'px';
+            ewal.style.backgroundPositionX = `${-20 + (newPosX * 1.01)}px`;
+
+            // West Wall (left wall)
+            wwal.style.left = (-64 + (newPosX * 1.01)) + 'px';
+            wwal.style.top = (newPosY) + 'px';
+        
+				
+    }
+	 if (ed) {
+zoom+=0.1
+}
+if (qd) {
+zoom-=0.1
+}
+	 ctx.save()
+	 ctx.translate(w/2,h/2)
+    ctx.scale(zoom,zoom)
+	 ctx.translate(-w/2,-h/2)
+	 
+    setTimeout(() => { 
+        ctx.clearRect(0,0,w,h)
+		  const newPosX = ((smoothX - (w / 2)) * -0.025)/zoom
+        const newPosY = ((smoothY - (h / 2)) * -0.04)/zoom
+        for (i in entities) {
+		      
+            curr = entities[i]
+				
+
+				ctx.drawImage(curr.sprite,(curr.x + newPosX),curr.y + newPosY,curr.size,curr.size)
+				
+
+// Ensure 'random' is a defined function, e.g., using Math.floor(Math.random() * 101)
+const rng = random(0, 10000); 
+const GRID_SIZE = 32; // Define the grid size
+if ( curr.type == "SVines" && rng == 3) {
+//evolve into a bigger state
+		  rng3 = random(1,3)
+		  
+		  if (rng3 == 1) {
+			sprite = vines
+		  }
+		  		  if (rng3 == 2) {
+			sprite = vines2
+		  }
+		  		  if (rng3 == 3) {
+			sprite = vines3
+		  }
+curr.type = "Vines"
+curr.sprite = sprite
+}
+if ( curr.type == "Vines" && rng == 4) {
+//evolve into a bigger state
+curr.type = "Flesh"
+curr.sprite = flesh
+}
+
+if (rng == 2) {
+    // Im boutta split frfr (aughhh)
+    // Calculate RAW positions
+    let xo = curr.x + mr32g().x;
+    let yo = curr.y + mr32g().y;
+
+    // Snap the coordinates to the 32-pixel grid
+    xo = Math.floor(xo / GRID_SIZE) * GRID_SIZE;
+    yo = Math.floor(yo / GRID_SIZE) * GRID_SIZE;
+    
+    let nvm = false;
+    for (i2 in usedPositions) {
+        curr2 = usedPositions[i2];
+        console.log("gah", xo, yo);
+        // Assuming you want to check for exact position matches on the grid
+        if (xo === curr2.x && yo === curr2.y) {
+            // Oh nevermind then.
+            nvm = true;
+            break; // Exit the loop once a duplicate is found
+        }
+    }
+
+    if (nvm == false) {
+        console.log("bah", xo, yo);
+        usedPositions.push({ x: xo, y: yo });
+		  rng2 = random(1,2)
+		  
+		  if (rng2 == 1) {
+			sprite = svines
+		  }
+		  		  if (rng2 == 2) {
+			sprite = svines2
+		  }
+
+        entities.push({ x: xo, y: yo, type: "SVines", sprite: sprite,size:32 });
+    }
+}
+
+	 		   
+
+
+
+			  
+            
+        }
+		  if (dd) {
+             (drone.t += 2)%180
+				}
+					   if (ad) {
+             (drone.t += -2)%180
+				}
+				 		   if (wd) {
+             drone.x = drone.x - Math.sin((drone.t*-1) * Math.PI/180)
+				 drone.y = drone.y -  Math.cos((drone.t*-1) * Math.PI/180)
+				}
+								 		   if (sd) {
+             drone.x = drone.x - Math.sin((drone.t*-1) * Math.PI/180)*-1
+				 drone.y = drone.y -  Math.cos((drone.t*-1) * Math.PI/180)*-1
+				}
+
+				ctx.save();
+				ctx.translate(drone.x+newPosX, drone.y+newPosY);
+
+    
+    ctx.rotate(drone.t * Math.PI / 180);
+
+				ctx.drawImage(dronesprite,-4.5,-8,9,14)
+				ctx.restore();
+		   //custom cursor thingymagig
+			ctx.drawImage(cc,mouseX,mouseY,32,32)
+			ctx.restore()
+        tick() 
+    }, 10);
+}
+ function stg(thing) {
+return Math.round(thing / 32) * 32
+ }
+tick(); 
+</script>
+
+</body>
+</html>
