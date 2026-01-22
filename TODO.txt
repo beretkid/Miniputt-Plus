@@ -1,0 +1,10 @@
+TODO:
+
+Make it so all entities use a list of collision balls
+
+add an astroid field, i do not care if you use a bunch or one to do it (as in entities)
+
+implement speeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeen
+
+add strafing
+
