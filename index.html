@@ -24,6 +24,7 @@
 <img hidden=true src="freighter.png" id="freightSprite">
 <img hidden=true src="fighter.png" id="fighterSprite">
 <img hidden=true src="component.png" id="compSprite">
+<img hidden=true src="explosion.png" id="explosionSprite">
 
 
 <!-- North Wall (Far Wall) -->
@@ -95,6 +96,7 @@ var t4 = document.getElementById("t4")
 var p4 = document.getElementById("p4")
 var compSprite = document.getElementById("compSprite")
 var freightSprite = document.getElementById("freightSprite")
+var explosionSprite = document.getElementById("explosionSprite")
 //var t4 = document.getElementById("t4")
 // Add new wall references:
 
@@ -128,6 +130,7 @@ var oy3 = 0
 var ox2 = 0
 var sizeoff=1
 var oy2 = 0
+var youAreDie=false
 var cc = gFree
 var boxTop = document.getElementById("BoxTop")
 var boxSide = document.getElementById("BoxSide")
@@ -141,6 +144,7 @@ var smoothY = 0;
 var cwidth=canvas.innerWidth
 var cheight=canvas.innerHeight
 var curr2
+var player = {hp:100}
 var xo
 var drone = {x:50,y:0,t:0,w:32,h:32,r:0,hp:100}
 var turnSpeed=0
@@ -159,7 +163,7 @@ var sy=0
 var seconds=0
 var qd=false
 function resetSys(sys) {
-return{engine:{dam:0,on:true,des:"Engine",heat:0,eff:100,maxHeat:500,insulation:10,pwrUsg:-250,minHeat:-100,missing:false,dmgRes:1},cooling:{dam:0,on:true,des:"Cooling System",heat:0,eff:100,maxHeat:150,insulation:0,pwrUsg:50,minHeat:-100,missing:false,dmgRes:1},tank:{dam:0,on:true,des:"Plasma Tank",heat:0,eff:100,maxHeat:125,insulation:0,pwrUsg:0,minHeat:-100,missing:false,dmgRes:1},gyroscope:{dam:0,on:true,des:"Gyroscope",heat:0,eff:100,maxHeat:200,insulation:0,pwrUsg:35,minHeat:-100,missing:false,dmgRes:7},sideThrust:{dam:0,on:true,des:"Side Thrusters",heat:0,eff:100,maxHeat:1000,insulation:10,pwrUsg:25,minHeat:-100,missing:false,dmgRes:1},thruster:{dam:0,on:true,des:"Main Thrusters",heat:0,eff:100,maxHeat:1000,insulation:10,pwrUsg:50,minHeat:-100,missing:false,dmgRes:1},shipComputer:{dam:0,on:true,des:"Ship Computer",heat:0,eff:100,maxHeat:125,insulation:5,pwrUsg:15,minHeat:-200,missing:false,dmgRes:1}}
+return{engine:{dam:0,on:true,des:"Engine",heat:0,eff:100,maxHeat:500,insulation:10,pwrUsg:-250,minHeat:-100,missing:false,dmgRes:1},cooling:{dam:0,on:true,des:"Cooling System",heat:20,eff:100,maxHeat:150,insulation:0,pwrUsg:50,minHeat:-100,missing:false,dmgRes:1},tank:{dam:0,on:true,des:"Plasma Tank",heat:20,eff:100,maxHeat:125,insulation:0,pwrUsg:0,minHeat:-100,missing:false,dmgRes:1},gyroscope:{dam:0,on:true,des:"Gyroscope",heat:20,eff:100,maxHeat:200,insulation:0,pwrUsg:35,minHeat:-100,missing:false,dmgRes:7},sideThrust:{dam:0,on:true,des:"Side Thrusters",heat:20,eff:100,maxHeat:1000,insulation:10,pwrUsg:25,minHeat:-100,missing:false,dmgRes:1},thruster:{dam:0,on:true,des:"Main Thrusters",heat:20,eff:100,maxHeat:1000,insulation:10,pwrUsg:50,minHeat:-100,missing:false,dmgRes:1},shipComputer:{dam:0,on:true,des:"Ship Computer",heat:0,eff:100,maxHeat:125,insulation:5,pwrUsg:15,minHeat:-200,missing:false,dmgRes:1},cockpit:{dam:0,on:true,des:"Cockpit",heat:20,eff:100,maxHeat:80,insulation:5,pwrUsg:15,minHeat:-200,missing:false,dmgRes:3}}
 }
 
 var systems=resetSys()
@@ -249,16 +253,27 @@ partSelected.on=!partSelected.on
 });
 var jettisonSwitch=document.getElementById("jettisonSwitch")
 jettisonSwitch.addEventListener('click', (evnt) => {
+if ( !partSelected.missing ) {
 console.log(partSelected)
 partSelected.missing=true
 //shit it out
-entities.push({x:drone.x,y:drone.y,w:16,h:16,sprite:compSprite,dist:1,type:"jettisoned",sx:sx,sy:sy,t:0,r:1})
+entities.push({x:drone.x,y:drone.y,w:4,h:4,sprite:compSprite,dist:1,type:"jettisoned",sx:sx,sy:sy,t:0,r:0.01,ts:turnSpeed})
+}
 })
 repairButton.addEventListener('click', (evnt) => {
 partSelected.dam=Math.max(0,partSelected.dam-random(10,50))
 })
-var entities = [{x:75,y:97,w:150,h:150,sprite:p3,dist:9,type:"Planet",sx:0,sy:0,t:0,r:64,grav:100},{x:100000,y:97,w:10000,h:10000,sprite:p4,dist:1,type:"bigMan",sx:0,sy:0,t:0,r:10000/1.4,grav:1000},{x:10,y:30,w:64,h:64,sprite:rock1,dist:1,type:"Rok",sx:0,sy:0,t:0,r:64},
-{x:0,y:0,w:32,h:32,sprite:rock1,dist:1,type:"astroid",t:0,sx:0,sy:0,r:32},{x:300,y:200,w:64,h:64,sprite:freightSprite,dist:1,type:"freighter",t:0,sx:0,sy:0,t:0,r:64}]
+var entities = [{x:75,y:97,w:150,h:150,sprite:p3,dist:9,type:"Planet",sx:0,sy:0,t:0,r:64,grav:100,visible:true},{x:100000,y:97,w:10000,h:10000,sprite:p4,dist:1,type:"bigMan",sx:0,sy:0,t:0,r:10000/1.4,grav:1000,visible:true},{x:10,y:30,w:64,h:64,sprite:rock1,dist:1,type:"Rok",sx:0,sy:0,t:0,r:64,visible:true},
+{x:0,y:0,w:32,h:32,sprite:rock1,dist:1,type:"astroid",t:0,sx:0,sy:0,r:32,visible:true},{x:300,y:200,w:64,h:64,sprite:freightSprite,dist:1,type:"freighter",t:0,sx:0,sy:0,t:0,r:64,visible:true}]
+
+
+
+
+function newExplosion(nx,ny,size,damage) {
+newBoom={x:nx,y:ny,w:64,h:64,sprite:explosionSprite,dist:1,type:"explosion",t:0,sx:0,sy:0,t:0,r:1,visible:false,dmg:damage,maxSize:32}
+entities.push(newBoom)
+return newBoom
+}
 var usedPositions = [{x:stg(w / 2 ),y:stg(h / 2)}]
 function getDist(x1,y1,x2,y2) {
 //console.log(x2,x1)
@@ -488,7 +503,8 @@ function tick() {
 sky.style.backgroundPosition = `${-drone.x/10+hoff}px ${-drone.y/10+hoff}px`;
 colliding=false
 ticksUntilBoom-=1
-if(ticksUntilBoom==0) {
+if(youAreDie) {
+youAreDie=false
 	drone.x=50
 drone.y=0
 sx=0
@@ -506,6 +522,7 @@ curr=systems[i4]
 curr.dam=0
 curr.heat=20
 curr.eff=100
+curr.missing=false
 }
 }
 //are we dying?
@@ -569,6 +586,15 @@ if (curr.type=="astroid"){
 curr.t+=0.01
 //curr.sx+=0.001
 }
+if (curr.type=="explosion"){
+curr.w=curr.w * 1.1
+curr.h=curr.h * 1.1
+curr.r=curr.r*1.1
+if (curr.r>curr.maxSize) {
+entities.splice(i,1)
+}
+}
+
 if (curr.type=="freighter") {
 curr.sx=(Math.sin((curr.t) * Math.PI/-180))
 curr.sy=(Math.cos((curr.t) * Math.PI/-180))
@@ -577,7 +603,10 @@ curr.t+=1
 }
 // collision check
 if(checkCircle(drone, curr)&&curr.dist==1){
+if (curr.type=="explosion"){
+//oh thats a bomb.
 
+} else {
 colliding=true
 collided=true
 
@@ -616,7 +645,7 @@ audImpact1.volume = Math.min(1,relativeSpeed/3)
 audImpact1.play()
 }
 
-
+}
 }
 
 
@@ -627,8 +656,23 @@ audImpact1.play()
 				//ctx.translate((curr.h/off),(curr.h/off))
 			 
 
-			   
+			 	if (curr.type=="explosion") {
+				ctx.fillStyle="orange"
+				ctx.lineWidth = curr.r/2;
+				ctx.strokeStyle="Red"
+				cwi=(curr.w)
+				chi=(curr.h)
+				cxi=curr.x-curr.w/2
+				cyi=curr.y-curr.h/2
+				ctx.beginPath()
+				ctx.arc(0, 0, curr.r/2, 0, 2 * Math.PI, false);
+				ctx.stroke()
+				ctx.fill()
+				ctx.closePath()
+				} else {
 				ctx.drawImage(curr.sprite,-curr.w/2,-curr.h/2,curr.w,curr.h)
+				}
+				
 				if(debug&&curr.dist==1){
 				ctx.fillStyle="Red"
 				ctx.lineWidth = 1;
@@ -697,12 +741,13 @@ ctx.fillRect((w/2)+(Math.sin((prevDir))*20)-5,(h/2)+(Math.cos((prevDir))*20)-5,1
 				}
 				}
 				if (qd) { 
-sx=sx+ ((Math.sin(((trueTurn*-1)+90) * Math.PI/180))/175)
-sy=sy+  ((Math.cos(((trueTurn*-1)+90) * Math.PI/180))/175)
+sx=sx+ ((Math.sin(((trueTurn*-1)+90) * Math.PI/180))/175)/(101-systems.sideThrust.eff)
+sy=sy+  ((Math.cos(((trueTurn*-1)+90) * Math.PI/180))/175)/(101-systems.sideThrust.eff)
 				}
 								if (ed) { 
-sx=sx+ ((Math.sin(((trueTurn*-1)-90) * Math.PI/180))/175)
-sy=sy+  ((Math.cos(((trueTurn*-1)-90) * Math.PI/180))/175)
+								
+sx=sx+ ((Math.sin(((trueTurn*-1)-90) * Math.PI/180))/175)/(101-systems.sideThrust.eff)
+sy=sy+  ((Math.cos(((trueTurn*-1)-90) * Math.PI/180))/175)/(101-systems.sideThrust.eff)
 				}
 					   if (ad) {
 						             							if(pmode){
@@ -821,11 +866,14 @@ return Math.round(thing / 32) * 32
  gyro=systems.gyroscope
 fuelTank=systems.tank
 computer=systems.shipComputer
+cockpit=systems.cockpit
  cpsg=0
  
  //how's our engine doing?
  // give it alittle boost if your kind
-
+if(cockpit.dam==100) {
+youAreDie=true
+}
 engine.heat+=0.1+(Math.abs(commandedSpeed/100)*engine.eff)*10
 engine.pwrUsg=-1*Math.abs(250/100)*engine.eff
  speed=(commandedSpeed/100)*fthrust.eff
@@ -877,7 +925,9 @@ if (!curr.on||curr.missing){curr.eff=0} else {cpsg+=curr.pwrUsg*(curr.eff/1)}
  //engine meltdown
  if(curr==engine&&curr.heat>curr.maxHeat){systems[i2].menuStats.innerText="[!Meltdown!] "+systems[i2].menuStats.innerText}
  //gastank explosion
-if(curr==fuelTank&&curr.heat>curr.maxHeat&&curr.dam>60){systems[i2].menuStats.innerText="[!Critical!] "+systems[i2].menuStats.innerText}
+if(curr==fuelTank&&curr.heat>curr.maxHeat&&curr.dam>60){systems[i2].menuStats.innerText="[!Critical!] "+systems[i2].menuStats.innerText
+
+}
  
  curr.heat-=(curr.heat-avrgHeat)/500
  curr.heat-=(curr.heat-0)/5000
