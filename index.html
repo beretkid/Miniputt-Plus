@@ -7,7 +7,7 @@
 </head>
 <body>
 
-<div style="position:absolute; width:120px; height:64px; top:50%;left:50%;z-index:8;overflow:auto;color:#c9a100;"  id="messageBox" ></div>
+<div style="position:absolute; width:120px; height:64px; top:50%;left:50%;display: flex; flex-direction: column-reverse;z-index:8;overflow:auto;color:#c9a100;"  id="messageBox" ></div>
 <img hidden=true src="pod.png" id="pod">
 
 <img hidden=true src="a2.png" id="rock1">
@@ -28,7 +28,7 @@
 <img hidden=true src="debris1.png" id="d1">
 <img hidden=true src="debris2.png" id="d2">
 <div style="z-index:9;position:absolute;top:0%;left:0%;"id="logo">
-<img src="Logo.png" >
+<img src="Logo_Static.png" >
 </div>
 <!-- Sky -->
 
@@ -55,6 +55,7 @@
 <img src="power.png"id="powerSwitch" width=25 >
 <img src="jettison.png" width=25 id="jettisonSwitch"> 
 <img src="repair.png"style="width:25px"id="repairButton">
+<hr>
 <div id="powerMeter">
 
 </div>
@@ -86,6 +87,7 @@ var pd=false
 var od=false
 var bd=false
 var td=false
+var timeSinceLastInput=0
 var c0 = document.getElementById("c0")
 var c1 = document.getElementById("c1")
 var c2 = document.getElementById("c2")
@@ -153,7 +155,7 @@ var smoothY = 0;
 var cwidth=canvas.innerWidth
 var cheight=canvas.innerHeight
 var curr2
-var player = {hp:100,air:100}
+var player = {hp:100,air:100,repairCharges:3}
 var xo
 var drone = {x:50,y:0,t:0,w:32,h:32,r:0,hp:100}
 var turnSpeed=0
@@ -161,6 +163,7 @@ var mode = "None"
 var yo
 var x
 var y
+var timeSinceLastMsg=0
 var pmode=false
 var ad=false
 var trueTurn=0
@@ -193,8 +196,9 @@ entities.push({x:drone.x,y:drone.y,w:randSize,h:randSize,sprite:document.getElem
 function pushMsg(msg) {
 newMsg = document.createElement('div');
 newMsg.innerHTML=msg
-msgBox.appendChild(newMsg)
-msgBox
+
+msgBox.insertAdjacentElement('afterbegin', newMsg);
+timeSinceLastMsg=0;
 }
 var gyro=systems.Gyroscope
 var prevDir=0
@@ -334,6 +338,16 @@ function smr32g() {
 return random(-1,1) * 32
 
 }
+var mouseInChat=false
+msgBox.addEventListener('mouseenter', (event) => {
+mouseInChat=true
+console.log("AHH HE'S TOUCHING ME!!!!")
+});
+
+// Function to handle the pointer leaving the element
+msgBox.addEventListener('mouseleave', (event) => {
+mouseInChat=false
+});
 function randSign() {
 return Math.sign(Math.random()-0.5)
 }
@@ -427,6 +441,7 @@ py=s1.y
     document.addEventListener('keydown', function(event) {
 	 if(!interacted) {document.getElementById("logo").hidden=true;}
 		interacted=true
+		timeSinceLastInput=0
        kc = event.keyCode
 		  console.log(kc)
 
@@ -523,6 +538,10 @@ py=s1.y
     });
 	 var crashSpin=0
 function tick() {
+ msgBox.style.opacity = 1-Math.max(1,timeSinceLastMsg/100)+1
+timeSinceLastInput+=1
+if(mouseInChat) {timeSinceLastMsg=0}else{timeSinceLastMsg+=1}
+
 
 ctx.filter = `brightness(${player.air}%)`
 sky.style.filter = `brightness(${player.air}%)`
@@ -531,6 +550,7 @@ colliding=false
 ticksUntilBoom-=1
 player.hp=Math.min(player.hp+0.0005,100)
 if(youAreDie) {
+pushMsg("You died!")
 youAreDie=false
 	drone.x=50
 drone.y=0
@@ -650,6 +670,7 @@ newMss=movedir(0,0,aDir,1)
 console.log(movedir(0,0,aDir,1))
 sx+=newMss.x/30
 sy+=newMss.y/30
+entities.splice(i,1)
 //drone.x=curr.x+(Math.sin((aDir)))*(curr.r/2)
 //drone.y=curr.y+(Math.cos((aDir)))*(curr.r/2)
 } else {
@@ -906,6 +927,7 @@ return Math.round(thing / 32) * 32
 
  function shipSystems() {
  
+
  engine=systems.engine
  fthrust=systems.thruster
  sthrust=systems.sidethruster
@@ -959,7 +981,7 @@ curr=systems[i2]
 
 if (!curr.missing) {
 if(curr==fthrust){
-curr.pwrUsg=10+speed*1000
+curr.pwrUsg=10+Math.abs(speed*1000)
 }
 if(curr==gyro){
 curr.pwrUsg=10+Math.abs(turnSpeed*10)
@@ -996,6 +1018,7 @@ engine.heat+=1
  //gastank explosion
 if(curr==fuelTank&&curr.heat>curr.maxHeat&&curr.dam>60&&!systems.fuelTank.missing){systems[i2].menuStats.innerText="[!Critical!] "+systems[i2].menuStats.innerText
 giveDamage(100)
+pushMsg("Something blew up in the back of the ship..")
 systems.fuelTank.missing = true
 }
  
