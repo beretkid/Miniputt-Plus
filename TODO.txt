@@ -1,5 +1,18 @@
 TODO:
-
-add ship computer component, lower effeciency lowers the chances of it sucsessfully doing things like auto-jettison, or the accuracy of portal warps  and if it goes out it is unable to slow your turning speed, along with loosing access to most stats your systems have ( like temperature, or damage.)
+also a roadmap i guess if you want to see it like that, though this was written specificly for me.
+add ship computer component, lower effeciency lowers the chances of it sucsessfully doing things like auto-jettison, or the accuracy of portal warps  and if it goes out it is unable to slow your turning speed, along with loosing access to most stats your systems have ( like temperature, or damage.) -- half done
 
 if something is about to fail in a way that will result in the players death ( eg: the gas tank exploding or a meltdown ) make it so you need to do a minigame if the computer isnt active
+
+add stations
+add guns
+they sent an email
+
+add system that uses pending alerts for the message system
+like: ["im dying","im dying but now purple for some reason; idk man im just dying, ok??"]
+
+pending notifictations
+then remove the first one and broadcast it
+
+
+also add collision for all

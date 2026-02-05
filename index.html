@@ -28,7 +28,21 @@
 <img hidden=true src="debris1.png" id="d1">
 <img hidden=true src="debris2.png" id="d2">
 <div style="z-index:9;position:absolute;top:0%;left:0%;"id="logo">
-<img src="Logo_Static.png" >
+<img src="Logo.gif" >
+<hr>
+<h1 style="color:#c9a100;">How to play 🡣</h1>
+<div style="color:#c9a100;">W and S | Main Thruster</div>
+<div style="color:#c9a100;">A and D | Turning</div>
+<div style="color:#c9a100;">Q and E | Strafing</div>
+<div style="color:#c9a100;">G | Control panel </div>
+<div style="color:#c9a100;">Z | Percision mode </div>
+<div style="color:#c9a100;">~ | Debug mode </div>
+<hr>
+<div style="color:#c9a100;">Tip: Each system effects its own thing and will use your overall power usage. </div>
+<div style="color:#c9a100;">Tip Jr: You are NOT immortal, pay attention to your health and oxygen meters!</div>
+<div style="color:#c9a100;">--Low oxygen will cause your screen to darken slowly and will kill you if unattended.</div>
+<div style="color:#c9a100;">Press any key to close this menu! </div>
+
 </div>
 <!-- Sky -->
 
@@ -190,7 +204,7 @@ newMove=movedir(sx,sy,random(-180,180),random(0.01,0.1))
 randSize=random(1,6)
 randLife=random(100,1000)
 if(random(0,4)==1&&amnt>5) {
-entities.push({x:drone.x,y:drone.y,w:randSize,h:randSize,sprite:document.getElementById("d"+String(random(1,2))),dist:1,type:"debris",sx:newMove.x,sy:newMove.y,t:drone.t,r:0.0001,ts:turnSpeed+random(-10,10),life:randLife})
+entities.push({x:drone.x,y:drone.y,w:randSize,h:randSize,sprite:document.getElementById("d"+String(random(1,2))),dist:1,type:"debris",sx:newMove.x,sy:newMove.y,t:drone.t,r:0.0001,ts:turnSpeed+random(-10,10),life:randLife,mass:0.1})
 }
 }
 function pushMsg(msg) {
@@ -283,14 +297,14 @@ if ( !partSelected.missing ) {
 console.log(partSelected)
 partSelected.missing=true
 //shit it out
-entities.push({x:drone.x,y:drone.y,w:4,h:4,sprite:compSprite,dist:1,type:"jettisoned",sx:sx,sy:sy,t:0,r:0.01,ts:turnSpeed})
+entities.push({x:drone.x,y:drone.y,w:4,h:4,sprite:compSprite,dist:1,type:"jettisoned",sx:sx,sy:sy,t:0,r:0.01,ts:turnSpeed,mass:0.2})
 }
 })
 repairButton.addEventListener('click', (evnt) => {
 partSelected.dam=Math.max(0,partSelected.dam-random(10,50))
 })
-var entities = [{x:75,y:97,w:150,h:150,sprite:p3,dist:9,type:"Planet",sx:0,sy:0,t:0,r:64,grav:100,visible:true},{x:100000,y:97,w:10000,h:10000,sprite:p4,dist:1,type:"bigMan",sx:0,sy:0,t:0,r:10000/1.4,grav:1000,visible:true},{x:10,y:30,w:64,h:64,sprite:rock1,dist:1,type:"Rok",sx:0,sy:0,t:0,r:64,visible:true},
-{x:0,y:0,w:32,h:32,sprite:rock1,dist:1,type:"astroid",t:0,sx:0,sy:0,r:32,visible:true},{x:300,y:200,w:64,h:64,sprite:freightSprite,dist:1,type:"freighter",t:0,sx:0,sy:0,t:0,r:64,visible:true}]
+var entities = [{x:75,y:97,w:150,h:150,sprite:p3,dist:9,type:"Planet",sx:0,sy:0,t:0,r:64,grav:100,visible:true,mass:100000},{x:100000,y:97,w:10000,h:10000,sprite:p4,dist:1,type:"bigMan",sx:0,sy:0,t:0,r:10000/1.4,grav:1000,visible:true,mass:100000},{x:10,y:30,w:64,h:64,sprite:rock1,dist:1,type:"Rok",sx:0,sy:0,t:0,r:64,visible:true,mass:10},
+{x:0,y:0,w:32,h:32,sprite:rock1,dist:1,type:"astroid",t:0,sx:0,sy:0,r:32,visible:true,mass:100},{x:300,y:200,w:64,h:64,sprite:freightSprite,dist:1,type:"freighter",t:0,sx:0,sy:0,t:0,r:64,visible:true,mass:2}]
 
 
 
@@ -537,6 +551,7 @@ py=s1.y
 		  //try using list like mathematical thingys to sort distances
     });
 	 var crashSpin=0
+	 pushMsg("This is the chatBox.")
 function tick() {
  msgBox.style.opacity = 1-Math.max(1,timeSinceLastMsg/100)+1
 timeSinceLastInput+=1
@@ -556,6 +571,7 @@ youAreDie=false
 drone.y=0
 sx=0
 sy=0
+fuel=1000
 speed=0
 player.hp=100
 player.air=100
@@ -678,11 +694,13 @@ colliding=true
 collided=true
 
 aDir=pointAt(curr.x,curr.y,drone.x,drone.y)+Math.PI*-1
-
+rDir=pointAt(curr.x,curr.y,drone.x,drone.y)
 prevDir=aDir
 // do you know how fast you were going back there?
-relativeSpeed = Math.abs(((sx/2)+(sy/2))-((curr.sx/2)+(curr.sy/2)))*5
+relativeSpeed = (Math.abs(curr.x-drone.x)+Math.abs(curr.y-drone.y))/100
 console.log(relativeSpeed)
+
+
 if(relativeSpeed>1){
 giveDamage(relativeSpeed*10)
 // this will not do anything unless we are actively in the middle of dying.
@@ -697,6 +715,9 @@ drone.y=curr.y+(Math.cos((aDir)))*(curr.r/2)
 //-drone.r/4
 sx-=(sx-curr.sx)/25
 sy-=(sy-curr.sy)/25
+//the fuck you mean 'my turn'?
+curr.sx+=((Math.sin((rDir)))*relativeSpeed)/(100*curr.mass)
+curr.sy+=((Math.cos((rDir)))*relativeSpeed)/(100*curr.mass)
 
 //sx=+((Math.sin((aDir)))*relativeSpeed)/1000
 //sy=+((Math.cos((aDir)))*relativeSpeed)/1000
@@ -898,7 +919,7 @@ ctx.rotate(trueTurn* (Math.PI/180))
 					gah = 50+Math.abs(heat)
 				oldfilt = ctx.filter
 				ctx.filter = `brightness(${(gah/2)+(player.air-50)}%)`
-				ctx.drawImage(timg,-12+sizeoff2,-48-((speed*2000)+sizeoff),24,24+(speed*2000)+sizeoff)
+				ctx.drawImage(timg,-14+sizeoff2,-48-((speed*2000)+sizeoff),28,24+(speed*2000)+sizeoff)
 				
 				ctx.filter = oldfilt
 				ctx.restore();
