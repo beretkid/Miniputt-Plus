@@ -34,6 +34,7 @@
 <div style="color:#c9a100;">W and S | Main Thruster</div>
 <div style="color:#c9a100;">A and D | Turning</div>
 <div style="color:#c9a100;">Q and E | Strafing</div>
+<div style="color:#c9a100;">O and P | Zooming</div>
 <div style="color:#c9a100;">G | Control panel </div>
 <div style="color:#c9a100;">Z | Percision mode </div>
 <div style="color:#c9a100;">~ | Debug mode </div>
@@ -45,7 +46,7 @@
 
 </div>
 <!-- Sky -->
-
+<img src="DebugEnabled.gif" id="debugIcon" style="z-index:9;position:absolute;top:0%;left:0%;" hidden=true>
 <div class="tiled-backgroundf" id="sky" style=" background-image: url('stars.png'); 
     background-repeat: repeat; 
     min-height: 100vh; 
@@ -118,7 +119,7 @@ var freightSprite = document.getElementById("freightSprite")
 var explosionSprite = document.getElementById("explosionSprite")
 //var t4 = document.getElementById("t4")
 // Add new wall references:
-
+var debugIcon = document.getElementById("debugIcon")
 
 var newPosX = 0
 var newPosY = 0
@@ -193,11 +194,22 @@ return{engine:{dam:0,on:true,des:"Engine",heat:0,eff:100,maxHeat:500,insulation:
 }
 
 var systems=resetSys()
-function giveDamage(amnt) {
-
+function giveDamage(amnt,acc) {
+//just assume its one if it isnt entered
+if (!acc){acc=1}
+for (let i = 0; i < acc; i++) {
 sysList=Object.values(systems);
+
 slen=sysList.length-1
 sysSelect=sysList[random(0,slen)]
+if (sysSelect.des=="Cockpit") {
+if (amnt>10) {
+//that cockpit aint saving you now pal!
+player.hp-=(amnt/100)*random(30,100)
+pushMsg("You are knocked around by the force of the impact.")
+
+}
+}
 console.log(sysSelect,random(0,slen),slen)
 sysSelect.dam+=amnt/sysSelect.dmgRes
 newMove=movedir(sx,sy,random(-180,180),random(0.01,0.1))
@@ -205,6 +217,7 @@ randSize=random(1,6)
 randLife=random(100,1000)
 if(random(0,4)==1&&amnt>5) {
 entities.push({x:drone.x,y:drone.y,w:randSize,h:randSize,sprite:document.getElementById("d"+String(random(1,2))),dist:1,type:"debris",sx:newMove.x,sy:newMove.y,t:drone.t,r:0.0001,ts:turnSpeed+random(-10,10),life:randLife,mass:0.1})
+}
 }
 }
 function pushMsg(msg) {
@@ -297,14 +310,14 @@ if ( !partSelected.missing ) {
 console.log(partSelected)
 partSelected.missing=true
 //shit it out
-entities.push({x:drone.x,y:drone.y,w:4,h:4,sprite:compSprite,dist:1,type:"jettisoned",sx:sx,sy:sy,t:0,r:0.01,ts:turnSpeed,mass:0.2})
+entities.push({x:drone.x,y:drone.y,w:4,h:4,sprite:compSprite,dist:1,type:"jettisoned",sx:sx,sy:sy,t:0,r:0,ts:turnSpeed,mass:0.2})
 }
 })
 repairButton.addEventListener('click', (evnt) => {
 partSelected.dam=Math.max(0,partSelected.dam-random(10,50))
 })
 var entities = [{x:75,y:97,w:150,h:150,sprite:p3,dist:9,type:"Planet",sx:0,sy:0,t:0,r:64,grav:100,visible:true,mass:100000},{x:100000,y:97,w:10000,h:10000,sprite:p4,dist:1,type:"bigMan",sx:0,sy:0,t:0,r:10000/1.4,grav:1000,visible:true,mass:100000},{x:10,y:30,w:64,h:64,sprite:rock1,dist:1,type:"Rok",sx:0,sy:0,t:0,r:64,visible:true,mass:10},
-{x:0,y:0,w:32,h:32,sprite:rock1,dist:1,type:"astroid",t:0,sx:0,sy:0,r:32,visible:true,mass:100},{x:300,y:200,w:64,h:64,sprite:freightSprite,dist:1,type:"freighter",t:0,sx:0,sy:0,t:0,r:64,visible:true,mass:2}]
+{x:0,y:0,w:32,h:32,sprite:rock1,dist:1,type:"astroid",t:0,sx:0,sy:0,r:32,visible:true,mass:1},{x:300,y:200,w:64,h:64,sprite:freightSprite,dist:1,type:"freighter",t:0,sx:0,sy:0,t:0,r:64,visible:true,mass:2}]
 
 
 
@@ -355,7 +368,7 @@ return random(-1,1) * 32
 var mouseInChat=false
 msgBox.addEventListener('mouseenter', (event) => {
 mouseInChat=true
-console.log("AHH HE'S TOUCHING ME!!!!")
+
 });
 
 // Function to handle the pointer leaving the element
@@ -509,7 +522,7 @@ py=s1.y
 		  		  	  		  		  if (kc == 192) {
 			//FEED HIM!!! DO IT FEED HIM NOW!!! FEED HIM!!!
 			debug=!debug
-			
+			debugIcon.hidden=!debug
 		  }
 		  		  if (kc == 70) {
 			//FEED HIM!!! DO IT FEED HIM NOW!!! FEED HIM!!!
@@ -553,9 +566,10 @@ py=s1.y
 	 var crashSpin=0
 	 pushMsg("This is the chatBox.")
 function tick() {
+
  msgBox.style.opacity = 1-Math.max(1,timeSinceLastMsg/100)+1
 timeSinceLastInput+=1
-if(mouseInChat) {timeSinceLastMsg=0}else{timeSinceLastMsg+=1}
+if(mouseInChat) {timeSinceLastMsg=Math.max(0,Math.min(timeSinceLastMsg-1,200))}else{timeSinceLastMsg+=1}
 
 
 ctx.filter = `brightness(${player.air}%)`
@@ -680,7 +694,7 @@ curr.t+=1
 if(checkCircle(drone, curr)&&curr.dist==1){
 if (curr.type=="explosion"){
 //oh thats a bomb..
-giveDamage(curr.dmg)
+giveDamage(curr.dmg,3)
 aDir=pointAt(curr.x,curr.y,drone.x,drone.y)+Math.PI*-1
 newMss=movedir(0,0,aDir,1)
 console.log(movedir(0,0,aDir,1))
@@ -691,18 +705,19 @@ entities.splice(i,1)
 //drone.y=curr.y+(Math.cos((aDir)))*(curr.r/2)
 } else {
 colliding=true
-collided=true
+
 
 aDir=pointAt(curr.x,curr.y,drone.x,drone.y)+Math.PI*-1
 rDir=pointAt(curr.x,curr.y,drone.x,drone.y)
 prevDir=aDir
 // do you know how fast you were going back there?
-relativeSpeed = (Math.abs(curr.x-drone.x)+Math.abs(curr.y-drone.y))/100
-console.log(relativeSpeed)
+relativeSpeed = (Math.abs(curr.sx-sx)+Math.abs(curr.sy-sy))
+realRelativeSpeed = (Math.abs(curr.sx-sx)+Math.abs(curr.sy-sy))
+console.log(relativeSpeed,realRelativeSpeed)
 
 
-if(relativeSpeed>1){
-giveDamage(relativeSpeed*10)
+if(realRelativeSpeed>0.2&&!collided){
+giveDamage(relativeSpeed*10,Math.ceil(relativeSpeed))
 // this will not do anything unless we are actively in the middle of dying.
 if(ticksUntilBoom>0){
 console.log("you now have:",Math.max(0,ticksUntilBoom-(relativeSpeed*25)))
@@ -710,6 +725,7 @@ ticksUntilBoom=Math.max(0,ticksUntilBoom-(relativeSpeed*25))
 }
 
 }
+collided=true
 drone.x=curr.x+(Math.sin((aDir)))*(curr.r/2)
 drone.y=curr.y+(Math.cos((aDir)))*(curr.r/2)
 //-drone.r/4
@@ -729,8 +745,8 @@ turnDisruption=+(((Math.sin(aDir)-0.5)*2)+((Math.cos(aDir)-0.5)*-2))/10
 //turnSpeed+=turnDisruption
 //console.log(aDir,sx)
 if (interacted) {
-audImpact1.volume = Math.min(1,relativeSpeed/3)
-audImpact1.play()
+
+
 }
 
 }
@@ -871,7 +887,7 @@ turnSpeed=turnSpeed/(1+(0.1*(gyro.eff/100)))
 console.log((1+(0.1*(gyro.eff/100))))
 				} 
 				shipSystems()
-				 heat+= speed*1000
+				 heat+= Math.abs(speed*1000)
 				 heat=(heat/1.01)-0.1
 				 heat=Math.min(Math.max(1,heat),50)
 				 turnSpeed=(turnSpeed)/(1+(0.02*(gyro.eff/100)))
@@ -898,8 +914,9 @@ ctx.rotate(trueTurn* (Math.PI/180))
     
 
 				
-				ctx.drawImage(dronesprite,-64,-64,128,128)
-				sizeoff=random(0,4)
+				
+				offX=random(-(speed*1000),(speed*1000))/10
+				offY=random(-(speed*1000),(speed*1000))/10
 				sizeoff2=random(-1*(speed*1000)/8,1*(speed*1000)/8)
 				audEngine.playbackRate = Math.abs(0.1+Math.ceil(speed*1000))
 				if(speed<0.001) {
@@ -908,10 +925,10 @@ ctx.rotate(trueTurn* (Math.PI/180))
 				if(speed>0.001) {
 				timg=t2
 				}
-								if(speed>0.002) {
+				if(speed>0.002) {
 				timg=t3
 				}
-												if(speed>0.004) {
+				if(speed>0.004) {
 				timg=t4
 				}
 
@@ -919,9 +936,12 @@ ctx.rotate(trueTurn* (Math.PI/180))
 					gah = 50+Math.abs(heat)
 				oldfilt = ctx.filter
 				ctx.filter = `brightness(${(gah/2)+(player.air-50)}%)`
-				ctx.drawImage(timg,-14+sizeoff2,-48-((speed*2000)+sizeoff),28,24+(speed*2000)+sizeoff)
-				
+				//oldstyle: ctx.drawImage(timg,-14+sizeoff2,-48-((speed*2000)+sizeoff),28,24+(speed*2000)+sizeoff)
+				if (systems.thruster.eff!==0) {
+				ctx.drawImage(timg,-18+offX,-46+offY,36,24)
+				}
 				ctx.filter = oldfilt
+				ctx.drawImage(dronesprite,-64,-64,128,128)
 				ctx.restore();
 				
 		
