@@ -7,7 +7,7 @@
 </head>
 <body>
 
-<div style="position:absolute; width:120px; height:64px; top:50%;left:50%;display: flex; flex-direction: column-reverse;z-index:8;overflow:auto;color:#c9a100;"  id="messageBox" ></div>
+<div style="position:absolute; width:520px; height:64px; top:50%;left:50%;display: flex; flex-direction: column-reverse;z-index:8;overflow:auto;color:#c9a100;"  id="messageBox" ></div>
 <img hidden=true src="pod.png" id="pod">
 
 <img hidden=true src="a2.png" id="rock1">
@@ -26,6 +26,7 @@
 <img hidden=true src="component.png" id="compSprite">
 <img hidden=true src="explosion.png" id="explosionSprite">
 <img hidden=true src="debris1.png" id="d1">
+<img hidden=true src="a3.png" id="a3">
 <img hidden=true src="debris2.png" id="d2">
 <div style="z-index:9;position:absolute;top:0%;left:0%;"id="logo">
 <img src="Logo.gif" >
@@ -91,6 +92,7 @@ var gFree = document.getElementById("gFree")
   const audAlarm = new Audio("alarm.ogg")
   const audAlarm2 = new Audio("alarm2.ogg")
   audEngine.loop = true
+  
 
 
 var gHold = document.getElementById("gHold")
@@ -104,6 +106,7 @@ var bd=false
 var td=false
 var timeSinceLastInput=0
 var c0 = document.getElementById("c0")
+var a3 = document.getElementById("a3")
 var c1 = document.getElementById("c1")
 var c2 = document.getElementById("c2")
 var c3 = document.getElementById("c3")
@@ -158,6 +161,7 @@ var boxTop = document.getElementById("BoxTop")
 var boxSide = document.getElementById("BoxSide")
 var mouseX; 
 var mouseY; 
+var strafeSpeed=0
 const msgBox=document.getElementById("messageBox")
 //align msgbox
 msgBox.style.left = `${(0)}px`
@@ -187,6 +191,7 @@ var rd = false
 var dying=false
 var sx=0
 var sy=0
+const settings={runOutOfView:true};
 var seconds=0
 var qd=false
 function resetSys(sys) {
@@ -205,7 +210,7 @@ sysSelect=sysList[random(0,slen)]
 if (sysSelect.des=="Cockpit") {
 if (amnt>10) {
 //that cockpit aint saving you now pal!
-player.hp-=(amnt/100)*random(30,100)
+player.hp-=(amnt/100)*random(30,75)
 pushMsg("You are knocked around by the force of the impact.")
 
 }
@@ -301,6 +306,23 @@ var powerSwitch=document.getElementById("powerSwitch")
 var powerMeter = document.getElementById("powerMeter")
 console.log(powerSwitch)
 powerSwitch.addEventListener('click', (evnt) => {
+pushMsg("You toggle power to the "+ partSelected.des +".")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 console.log(partSelected)
 partSelected.on=!partSelected.on
 });
@@ -309,16 +331,55 @@ jettisonSwitch.addEventListener('click', (evnt) => {
 if ( !partSelected.missing ) {
 console.log(partSelected)
 partSelected.missing=true
+pushMsg("You jettison the "+partSelected.des+" From the ship.")
 //shit it out
 entities.push({x:drone.x,y:drone.y,w:4,h:4,sprite:compSprite,dist:1,type:"jettisoned",sx:sx,sy:sy,t:0,r:0,ts:turnSpeed,mass:0.2})
-}
+}else{pushMsg("It seems to be allready missing!")}
 })
 repairButton.addEventListener('click', (evnt) => {
-partSelected.dam=Math.max(0,partSelected.dam-random(10,50))
+if(partSelected.missing){
+pushMsg("The part seems to be entirely missing from where it should be!")
+
+
+}else{
+if(partSelected.dam<10){
+if (partSelected.eff<30) {
+pushMsg("It seems in decent condition, however it seems the power is faulty..")
+} else{pushMsg("It doesent need repairs.")}
+
+
+}else{
+if(player.repairCharges>0){
+rng=random(10,50)
+partSelected.dam=Math.max(0,partSelected.dam-rng)
+player.repairCharges-=1
+pushMsg("Repaired "+rng+"Dmg ("+player.repairCharges+"/3)")
+}else{pushMsg("You don't have anything to repair it with!")}
+}
+}
 })
 var entities = [{x:75,y:97,w:150,h:150,sprite:p3,dist:9,type:"Planet",sx:0,sy:0,t:0,r:64,grav:100,visible:true,mass:100000},{x:100000,y:97,w:10000,h:10000,sprite:p4,dist:1,type:"bigMan",sx:0,sy:0,t:0,r:10000/1.4,grav:1000,visible:true,mass:100000},{x:10,y:30,w:64,h:64,sprite:rock1,dist:1,type:"Rok",sx:0,sy:0,t:0,r:64,visible:true,mass:10},
 {x:0,y:0,w:32,h:32,sprite:rock1,dist:1,type:"astroid",t:0,sx:0,sy:0,r:32,visible:true,mass:1},{x:300,y:200,w:64,h:64,sprite:freightSprite,dist:1,type:"freighter",t:0,sx:0,sy:0,t:0,r:64,visible:true,mass:2}]
 
+generateField=true
+fieldX=1000
+fieldY=1000
+fieldRadius=1000
+if(generateField) {
+rndm=random(10,200)
+for (let i = 0; i < rndm; i++) {
+rng=random(0,1)
+if (rng==1){sprite=a3}
+if (rng==0){sprite=rock1}
+size=random(32,160)
+randomT=random(-180,180)
+rx=fieldX+Math.sin(random(-1000,1000))*fieldRadius
+ry=fieldY+Math.cos(random(-1000,1000))*fieldRadius
+
+
+entities.push({x:rx,y:ry,w:size,h:size,sprite:sprite,dist:1,type:"astroid",sx:0,sy:0,t:randomT,r:size,visible:true,mass:size/10})
+}
+}
 
 
 
@@ -612,12 +673,8 @@ curr.missing=false
 
 dying=(ticksUntilBoom>0)
 totalVelocity= Math.abs(sx+sy)
-	 if (od) {
-zoom=zoom*1.01
-}
-if (pd) {
-zoom=zoom*0.99
-}
+if (od) {zoom=Math.max(zoom*1.01,0.4)}
+if (pd) {zoom=Math.max(zoom*0.99,0.4)}
 zoom=Math.max(0,zoom)
 	 ctx.save()
 	  
@@ -642,7 +699,9 @@ seconds = Math.floor(gt/100)
 			osy=sy
 		    for (i in entities) {
             curr = entities[i]
-						
+				if(settings.runOutOfView&&((getDist(curr.x,curr.y,drone.x,drone.y)/curr.dist)-zoom)>1000/zoom) {
+
+				} else {
 				ctx.save()
 
 
@@ -672,7 +731,7 @@ curr.t+=0.01
 }
 
 //for the sake of testing..
-if((gt%250)==10) {newExplosion(100,20,10,10)}
+//if((gt%250)==10) {newExplosion(100,20,10,10)}
 
 
 if (curr.type=="explosion"){
@@ -697,7 +756,7 @@ if (curr.type=="explosion"){
 giveDamage(curr.dmg,3)
 aDir=pointAt(curr.x,curr.y,drone.x,drone.y)+Math.PI*-1
 newMss=movedir(0,0,aDir,1)
-console.log(movedir(0,0,aDir,1))
+//console.log(movedir(0,0,aDir,1))
 sx+=newMss.x/30
 sy+=newMss.y/30
 entities.splice(i,1)
@@ -713,7 +772,7 @@ prevDir=aDir
 // do you know how fast you were going back there?
 relativeSpeed = (Math.abs(curr.sx-sx)+Math.abs(curr.sy-sy))
 realRelativeSpeed = (Math.abs(curr.sx-sx)+Math.abs(curr.sy-sy))
-console.log(relativeSpeed,realRelativeSpeed)
+
 
 
 if(realRelativeSpeed>0.2&&!collided){
@@ -774,6 +833,7 @@ if (interacted) {
 				ctx.fill()
 				ctx.closePath()
 				} else {
+				if((getDist(curr.x,curr.y,drone.x,drone.y)/curr.dist+zoom)<1000)
 				ctx.drawImage(curr.sprite,-curr.w/2,-curr.h/2,curr.w,curr.h)
 				}
 				
@@ -808,6 +868,7 @@ ctx.fillRect(-2,-2,4,4)
 
 				//console.log(Math.round(curr.x + drone.x),Math.round(curr.y + drone.y))
 				
+}
 }
 ctx.restore()
 // Ensure 'random' is a defined function, e.g., using Math.floor(Math.random() * 101)
@@ -844,15 +905,16 @@ ctx.fillRect((w/2)+(Math.sin((prevDir))*20)-5,(h/2)+(Math.cos((prevDir))*20)-5,1
          turnSpeed+= (0.025+Math.abs(speed*2))*(gyro.eff/100)
 				}
 				}
-				if (qd) { 
-sx=sx+ ((Math.sin(((trueTurn*-1)+90) * Math.PI/180))/175)/(27.25-(systems.sideThrust.eff/4))
-sy=sy+  ((Math.cos(((trueTurn*-1)+90) * Math.PI/180))/175)/(27.25-(systems.sideThrust.eff/4))
-				}
-								if (ed) { 
+				if (qd) { strafeSpeed+=systems.sideThrust.eff/30000}
+				if (ed) { strafeSpeed-=systems.sideThrust.eff/30000}
+				
+				//handle strafing speeds or something idk man
+				sx=sx+(Math.sin(((trueTurn*-1)+90) * Math.PI/180))*strafeSpeed
+            sy=sy+(Math.cos(((trueTurn*-1)+90) * Math.PI/180))*strafeSpeed
 								
-sx=sx+ ((Math.sin(((trueTurn*-1)-90) * Math.PI/180))/175)/(101-systems.sideThrust.eff)
-sy=sy+  ((Math.cos(((trueTurn*-1)-90) * Math.PI/180))/175)/(101-systems.sideThrust.eff)
-				}
+				
+								
+
 					   if (ad) {
 						             							if(pmode){
 							sx-=0.001
@@ -880,12 +942,15 @@ sy=sy+  ((Math.cos(((trueTurn*-1)-90) * Math.PI/180))/175)/(101-systems.sideThru
 				if(rd) {
 				//brakes, (slow the FUCK DOWN WE'RE GONNA CRASH!!!!!!!)
  speed=speed/1.0005
+
+
  //dir+awaydir/2 -- just curious what something like that would do, try something like that later.
  sx=sx/1.01
 sy=sy/1.01
 turnSpeed=turnSpeed/(1+(0.1*(gyro.eff/100)))
-console.log((1+(0.1*(gyro.eff/100))))
+
 				} 
+				  strafeSpeed=strafeSpeed/1000
 				shipSystems()
 				 heat+= Math.abs(speed*1000)
 				 heat=(heat/1.01)-0.1
@@ -933,7 +998,7 @@ ctx.rotate(trueTurn* (Math.PI/180))
 				}
 
 					//gah = 90-(Math.sin(gt/10))*-10
-					gah = 50+Math.abs(heat)
+					gah = 50+Math.abs(heat)+Math.sin(gt/10)
 				oldfilt = ctx.filter
 				ctx.filter = `brightness(${(gah/2)+(player.air-50)}%)`
 				//oldstyle: ctx.drawImage(timg,-14+sizeoff2,-48-((speed*2000)+sizeoff),28,24+(speed*2000)+sizeoff)
@@ -971,7 +1036,7 @@ return Math.round(thing / 32) * 32
 
  engine=systems.engine
  fthrust=systems.thruster
- sthrust=systems.sidethruster
+ sthrust=systems.sideThrust
  cooler=systems.cooling
  gyro=systems.gyroscope
 fuelTank=systems.tank
