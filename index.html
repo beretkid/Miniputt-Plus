@@ -27,7 +27,8 @@
 <img hidden=true src="component.png" id="compSprite">
 <img hidden=true src="explosion.png" id="explosionSprite">
 <img hidden=true src="debris1.png" id="d1">
-<img hidden=true src="a3.png" id="a3">
+<img hidden=true src="a3.png" id="a3">\
+<img hidden=true src="station.png" id="stationSprite">
 <img hidden=true src="debris2.png" id="d2">
 <div style="z-index:9;position:absolute;top:0%;left:0%;"id="logo">
 <img src="Logo.gif" >
@@ -137,6 +138,7 @@ var t4 = document.getElementById("t4")
 var p4 = document.getElementById("p4")
 var compSprite = document.getElementById("compSprite")
 var freightSprite = document.getElementById("freightSprite")
+var stationSprite = document.getElementById("stationSprite")
 var explosionSprite = document.getElementById("explosionSprite")
 //var t4 = document.getElementById("t4")
 // Add new wall references:
@@ -189,6 +191,7 @@ const msgBox=document.getElementById("messageBox")
 //align msgbox
 msgBox.style.left = `${(0)}px`
 msgBox.style.top = `${(window.innerHeight-64)}px`
+
 var mx = 0;
 var my = 0;
 var interacted=false
@@ -197,7 +200,7 @@ var smoothY = 0;
 var cwidth=canvas.innerWidth
 var cheight=canvas.innerHeight
 var curr2
-var player = {hp:100,air:100,repairCharges:3,dizzy:0,cameraThrow:0,cameraThrowX:0,cameraThrowY:0}
+var player = {hp:100,air:100,repairCharges:3,dizzy:0,cameraThrow:0,cameraThrowX:0,cameraThrowY:0,credits:1000,jobs:[],driving:true}
 var xo
 var drone = {x:50,y:0,t:0,w:32,h:32,r:0,hp:100}
 var turnSpeed=0
@@ -263,6 +266,8 @@ var gyro=systems.Gyroscope
 var prevDir=0
 var alarmPlayed = false
 var sky =document.getElementById("sky")
+sky.style.top=`${(-h)}px`; 
+sky.style.left=`${(-w)}px`; 
 var dd=false
 var GRID_SIZE = 32
 var repairButton = document.getElementById("repairButton")
@@ -385,7 +390,7 @@ pushMsg("Repaired "+rng+"Dmg ("+player.repairCharges+"/3)")
 }
 })
 var entities = [{x:75,y:97,w:150,h:150,sprite:p3,dist:9,type:"Planet",sx:0,sy:0,t:0,r:64,grav:100,visible:true,mass:100000},{x:100000,y:97,w:10000,h:10000,sprite:p4,dist:1,type:"bigMan",sx:0,sy:0,t:0,r:10000/1.4,grav:1000,visible:true,mass:100000},{x:10,y:30,w:64,h:64,sprite:rock1,dist:1,type:"Rok",sx:0,sy:0,t:0,r:64,visible:true,mass:10},
-{x:0,y:0,w:32,h:32,sprite:rock1,dist:1,type:"astroid",t:0,sx:0,sy:0,r:32,visible:true,mass:1},{x:300,y:200,w:64,h:64,sprite:freightSprite,dist:1,type:"freighter",t:0,sx:0,sy:0,t:0,r:64,visible:true,mass:2}]
+{x:0,y:0,w:32,h:32,sprite:rock1,dist:1,type:"astroid",t:0,sx:0,sy:0,r:32,visible:true,mass:-0.1},{x:300,y:200,w:64,h:64,sprite:freightSprite,dist:1,type:"freighter",t:0,sx:0,sy:0,t:0,r:64,visible:true,mass:2},{x:-200,y:0,w:128,h:128,sprite:stationSprite,dist:1,type:"station",t:0,sx:0,sy:0,t:0,r:44,visible:true,mass:10000000,collisionPoints:[{x:45,y:0,r:34},{x:-45,y:0,r:34},{x:0,y:-45,r:34},{x:0,y:45,r:34}]}]
 
 generateField=true
 fieldX=1000
@@ -564,6 +569,11 @@ py=s1.y
 			dd=true
 			
 		  }
+		  		  		  	if (kc == 67) {
+
+			settings.cameraChase=!settings.cameraChase
+			
+		  }
 		  	  		  	if (kc == 82) {
 
 			rd=true
@@ -663,7 +673,14 @@ if(mouseInChat) {timeSinceLastMsg=Math.max(0,Math.min(timeSinceLastMsg-1,200))}e
 
 ctx.filter = `brightness(${player.air}%)`
 sky.style.filter = `brightness(${player.air}%)`
-sky.style.backgroundPosition = `${-drone.x/10+hoff}px ${-drone.y/10+hoff}px`;
+skyX=drone.x/10+hoff
+skyY=drone.y/10+hoff
+//Math.cos(drone.t*Math.PI/180)*-getDist(drone.x/10+hoff,drone.y/10+hoff,0,0)
+if (settings.cameraChase){sky.style.transform = `rotate(${(-trueTurn)+"deg"}`;}
+sky.style.backgroundPosition = `${skyX}px ${skyY}px`;
+
+sky.style.width = String((w+h)*2)+"px"
+sky.style.height = String(h+w)+"px"
 colliding=false
 ticksUntilBoom-=1
 player.hp=Math.min(player.hp+0.0005,100)
@@ -783,65 +800,26 @@ curr.sy=(Math.cos((curr.t) * Math.PI/-180))
 curr.t+=1
 }
 // collision check
+extMultiBall=false
+embSelect={x:0,y:0,r:0}
+
+if (curr.collisionPoints) {
+
+for (i6 in curr.collisionPoints) {
+colpoi=curr.collisionPoints[i6]
+
+if(checkCircle(drone, {x:curr.x+colpoi.x,y:curr.y+colpoi.y,r:colpoi.r})){
+
+extMultiBall=true;
+embSelect=colpoi;
+collisionFollowThrough(curr,colpoi,true)
+
+}
+}
+}
+
 if(checkCircle(drone, curr)&&curr.dist==1){
-if (curr.type=="explosion"){
-//oh thats a bomb..
-giveDamage(curr.dmg,3)
-aDir=pointAt(curr.x,curr.y,drone.x,drone.y)+Math.PI*-1
-newMss=movedir(0,0,aDir,1)
-//console.log(movedir(0,0,aDir,1))
-sx+=newMss.x/30
-sy+=newMss.y/30
-entities.splice(i,1)
-//drone.x=curr.x+(Math.sin((aDir)))*(curr.r/2)
-//drone.y=curr.y+(Math.cos((aDir)))*(curr.r/2)
-} else {
-colliding=true
-
-
-aDir=pointAt(curr.x,curr.y,drone.x,drone.y)+Math.PI*-1
-rDir=pointAt(curr.x,curr.y,drone.x,drone.y)
-prevDir=aDir
-// do you know how fast you were going back there?
-relativeSpeed = (Math.abs(curr.sx-sx)+Math.abs(curr.sy-sy))
-realRelativeSpeed = (Math.abs(curr.sx-sx)+Math.abs(curr.sy-sy))
-
-
-
-if(realRelativeSpeed>0.2&&!collided){
-giveDamage(relativeSpeed*10,Math.ceil(relativeSpeed))
-// this will not do anything unless we are actively in the middle of dying.
-if(ticksUntilBoom>0){
-console.log("you now have:",Math.max(0,ticksUntilBoom-(relativeSpeed*25)))
-ticksUntilBoom=Math.max(0,ticksUntilBoom-(relativeSpeed*25))
-}
-
-}
-collided=true
-drone.x=curr.x+(Math.sin((aDir)))*(curr.r/2)
-drone.y=curr.y+(Math.cos((aDir)))*(curr.r/2)
-//-drone.r/4
-sx-=(sx-curr.sx)/25
-sy-=(sy-curr.sy)/25
-//the fuck you mean 'my turn'?
-curr.sx+=((Math.sin((rDir)))*relativeSpeed)/(100*curr.mass)
-curr.sy+=((Math.cos((rDir)))*relativeSpeed)/(100*curr.mass)
-
-//sx=+((Math.sin((aDir)))*relativeSpeed)/1000
-//sy=+((Math.cos((aDir)))*relativeSpeed)/1000
-
-//+(Math.cos((aDir)))*(curr.r/2))/25
-//add the turn into this please or else itll be occasionally wrong
-turnDisruption=+(((Math.sin(aDir)-0.5)*2)+((Math.cos(aDir)-0.5)*-2))/10
-//console.log(turnDisruption)
-//turnSpeed+=turnDisruption
-//console.log(aDir,sx)
-if (interacted) {
-
-
-}
-
-}
+collisionFollowThrough(curr,{x:0,y:0,r:0})
 }
 
 
@@ -867,6 +845,21 @@ if (interacted) {
 				ctx.closePath()
 				} else {
 				if((getDist(curr.x,curr.y,drone.x,drone.y)/curr.dist+zoom)<1000)
+						  if(debug&&curr.collisionPoints){
+						  
+						  for ( i7 in curr.collisionPoints) {
+			spoint=curr.collisionPoints[i7]
+				ctx.fillStyle="Red"
+				ctx.lineWidth = 1;
+				ctx.strokeStyle="Red"
+
+				ctx.beginPath()
+				ctx.arc(spoint.x, spoint.y, spoint.r/2, 0, 2 * Math.PI, false);
+				ctx.stroke()
+				ctx.fill()
+				ctx.closePath()
+				}
+			  }
 				ctx.drawImage(curr.sprite,-curr.w/2,-curr.h/2,curr.w,curr.h)
 				}
 				
@@ -938,8 +931,8 @@ ctx.fillRect((w/2)+(Math.sin((prevDir))*20)-5,(h/2)+(Math.cos((prevDir))*20)-5,1
          turnSpeed+= (0.025+Math.abs(speed*2))*(gyro.eff/100)
 				}
 				}
-				if (qd) { strafeSpeed+=systems.sideThrust.eff/30000}
-				if (ed) { strafeSpeed-=systems.sideThrust.eff/30000}
+				if (qd) { strafeSpeed+=systems.sideThrust.eff/20000}
+				if (ed) { strafeSpeed-=systems.sideThrust.eff/20000}
 				
 				//handle strafing speeds or something idk man
 				sx=sx+(Math.sin(((trueTurn*-1)+90) * Math.PI/180))*strafeSpeed
@@ -1186,6 +1179,67 @@ power=Math.max(Math.min((power-((cpsg/1000))),1000),0)
 powerMeter.innerText=String(Math.round(power/10))+"%; "+String(Math.round(-cpsg))+"W;" +"Air:"+String(Math.round(player.air))+" HP:"+String(Math.round(player.hp))+";"
 
 //Condition: "+String(Math.round(100-partSelected.dam))+"%"
+ }
+ // move collision handling its own function thingy
+
+ function collisionFollowThrough(curr,embSelect,extMultiBall) {
+if (curr.type=="explosion"){
+//oh thats a bomb..
+giveDamage(curr.dmg,3)
+aDir=pointAt(curr.x,curr.y,drone.x,drone.y)+Math.PI*-1
+newMss=movedir(0,0,aDir,1)
+//console.log(movedir(0,0,aDir,1))
+sx+=newMss.x/30
+sy+=newMss.y/30
+entities.splice(i,1)
+//drone.x=curr.x+(Math.sin((aDir)))*(curr.r/2)
+//drone.y=curr.y+(Math.cos((aDir)))*(curr.r/2)
+} else {
+colliding=true
+calX=curr.x+embSelect.x
+calY=curr.y+embSelect.y
+calR=curr.r
+if(extMultiBall){calR=embSelect.r}
+
+aDir=pointAt(calX,calY,drone.x,drone.y)+Math.PI*-1
+rDir=pointAt(calX,calY,drone.x,drone.y)
+prevDir=aDir
+// do you know how fast you were going back there?
+relativeSpeed = (Math.abs(curr.sx-sx)+Math.abs(curr.sy-sy))
+realRelativeSpeed = (Math.abs(curr.sx-sx)+Math.abs(curr.sy-sy))
+
+
+
+if(realRelativeSpeed>0.2&&!collided){
+giveDamage(relativeSpeed*10,Math.ceil(relativeSpeed))
+// this will not do anything unless we are actively in the middle of dying.
+
+
+}
+collided=true
+drone.x=calX+(Math.sin((aDir)))*(calR/2)
+drone.y=calY+(Math.cos((aDir)))*(calR/2)
+//-drone.r/4
+sx-=(sx-curr.sx)/25
+sy-=(sy-curr.sy)/25
+//the fuck you mean 'my turn'?
+curr.sx+=((Math.sin((rDir)))*relativeSpeed)/(100*curr.mass)
+curr.sy+=((Math.cos((rDir)))*relativeSpeed)/(100*curr.mass)
+
+//sx=+((Math.sin((aDir)))*relativeSpeed)/1000
+//sy=+((Math.cos((aDir)))*relativeSpeed)/1000
+
+//+(Math.cos((aDir)))*(curr.r/2))/25
+//add the turn into this please or else itll be occasionally wrong
+turnDisruption=+(((Math.sin(aDir)-0.5)*2)+((Math.cos(aDir)-0.5)*-2))/10
+//console.log(turnDisruption)
+//turnSpeed+=turnDisruption
+//console.log(aDir,sx)
+
+cDir=pointAt(curr.x,curr.y,drone.x,drone.y)
+console.log(cDir)
+if (cDir>-Math.PI/6&&cDir<Math.PI/6) {console.log("AHHHHH")}
+}
  }
 
 tick(); 
