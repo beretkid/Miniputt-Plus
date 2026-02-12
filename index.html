@@ -39,6 +39,7 @@
 <div style="color:#c9a100;">Q and E | Strafing</div>
 <div style="color:#c9a100;">O and P | Zooming</div>
 <div style="color:#c9a100;">G | Control panel </div>
+<div style="color:#c9a100;">C | Camera mode </div>
 <div style="color:#c9a100;">Z | Percision mode </div>
 <div style="color:#c9a100;">~ | Debug mode </div>
 <hr>
@@ -51,26 +52,25 @@
 <!-- Sky -->
 <img src="DebugEnabled.gif" id="debugIcon" style="z-index:9;position:absolute;top:0%;left:0%;" hidden=true>
 <div class="StarsFront" id="sky" style=" background-image: url('stars.png'); 
-    background-repeat: repeat; 
-    min-height: 100vh; 
+    background-repeat: repeat;  
     border: 0px;
-    background-position: 5px 0px;
-	position: fixed; /* Fixes them to the viewport */
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
+    background-position: 0px 0px;
+	
+    top: 0%;
+    left: 0%;
     margin: 0;
     padding: 0;
 	 background-Size: 1000px 1000px;
 	 filter: bloom(10);
+	 position:fixed;
+	width: 2000vw;
+    height: 2000vh;
 	 z-index:2;" >
 </div>
-<div class="tiled-background" id="sky" style=" background-image: url('space.png'); 
-    background-repeat: repeat; 
+<div class="tiled-background" style="
     min-height: 100vh; 
     border: 0px;
-    background-position: 5px 0px;
+    background-color: black;
 	position: fixed; /* Fixes them to the viewport */
     top: 0;
     left: 0;
@@ -78,8 +78,6 @@
     height: 100vh;
     margin: 0;
     padding: 0;
-	 background-Size: 1000px 1000px;
-	 filter: bloom(10);
 	 z-index:1;" >
 </div>
 
@@ -170,8 +168,8 @@ var ox3 = 0
 canvas.width = window.innerWidth * 1
 canvas.height = window.innerHeight * 1
 
-var w = canvas.width;
-var h = canvas.height;
+var w = window.innerWidth
+var h = window.innerHeight
 var zoom=5
 var colliding = false
 var commandedSpeed=0
@@ -217,7 +215,7 @@ var rd = false
 var dying=false
 var sx=0
 var sy=0
-const settings={runOutOfView:true,renderDist:w*h,cameraChase:true};
+const settings={runOutOfView:true,renderDist:w*h,cameraChase:true,paused:false};
 var seconds=0
 var qd=false
 function resetSys(sys) {
@@ -397,7 +395,7 @@ fieldX=1000
 fieldY=1000
 fieldRadius=1000
 if(generateField) {
-rndm=random(10,200)
+rndm=random(100,200)
 for (let i = 0; i < rndm; i++) {
 rng=random(0,1)
 if (rng==1){sprite=a3}
@@ -411,8 +409,21 @@ ry=fieldY+Math.cos(random(-1000,1000))*fieldRadius
 entities.push({x:rx,y:ry,w:size,h:size,sprite:sprite,dist:1,type:"astroid",sx:0,sy:0,t:randomT,r:size,visible:true,mass:size/10})
 }
 }
-
-
+// this function puts a number through a very quik sinwave, even though its actually using cos, but im not going to call it a "Coswave" (that actualy sounds cool nvm) resulting in a seemingly random, yet predictable result.
+//"I can't beleive its not Math.random()!"
+function genSV(seed,off,agit) {
+// you dont NEED to set thease but i made it so you have the option to change the cosine rate and more importantly, the offset.
+if (!off){off=0}
+if (!agit){agit=1000000000}
+return Math.abs(((Math.cos(Math.pow(seed+off,2)*agit)*agit))%1)
+}
+function genSV2(min,max,seed,off,agit) {
+if (!off){off=0}
+if (!agit){agit=1000000000}
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(genSV(seed,off,agit) * (max - min + 1)) + min;
+}
 
 function newExplosion(nx,ny,size,damage) {
 newBoom={x:nx,y:ny,w:64,h:64,sprite:explosionSprite,dist:1,type:"explosion",t:0,sx:0,sy:0,t:0,r:1,visible:false,dmg:damage,maxSize:32}
@@ -664,6 +675,13 @@ py=s1.y
 	 pushMsg("This is the chatBox.")
 function tick() {
 
+
+if (gt%10==9&&w*h!==window.innerWidth*window.innerHeight) {
+ w = window.innerWidth
+ h = window.innerHeight
+ canvas.width=w
+ canvas.height=h
+}
  msgBox.style.opacity = 1-Math.max(1,timeSinceLastMsg/100)+1
  player.dizzy = Math.max(player.dizzy-1,0)
  
@@ -676,11 +694,14 @@ sky.style.filter = `brightness(${player.air}%)`
 skyX=drone.x/10+hoff
 skyY=drone.y/10+hoff
 //Math.cos(drone.t*Math.PI/180)*-getDist(drone.x/10+hoff,drone.y/10+hoff,0,0)
-if (settings.cameraChase){sky.style.transform = `rotate(${(-trueTurn)+"deg"}`;}
+if (settings.cameraChase){sky.style.transform = `rotate(${-trueTurn}deg)`;}
 sky.style.backgroundPosition = `${skyX}px ${skyY}px`;
 
-sky.style.width = String((w+h)*2)+"px"
-sky.style.height = String(h+w)+"px"
+//sky.style.width = String((w+h))+"px"
+//sky.style.height = String((h+w))+"px"
+//sky.style.left = String(-(w+h)/2)+"px"
+//sky.style.top = String(-(w+h)/2)+"px"
+sky.style.transformOrigin=`${w*1.5}px ${h*1.5}px`
 colliding=false
 ticksUntilBoom-=1
 player.hp=Math.min(player.hp+0.0005,100)
@@ -738,6 +759,7 @@ seconds = Math.floor(gt/100)
     
 	 
     setTimeout(() => { 
+	 if (!settings.paused) {
         ctx.clearRect(-100000,-100000,w*1000,h*1000)
 		  const newPosX = ((smoothX - (w / 2)) * -0.025)/zoom
         const newPosY = ((smoothY - (h / 2)) * -0.04)/zoom
@@ -1049,7 +1071,9 @@ offsets=[0,0]
 			}
 			
 			speedDiff=Math.abs((sx-osx)+(sy-osy))
-        tick() 
+			}
+        tick()
+		  
     }, 10);
 }
  function stg(thing) {
@@ -1238,7 +1262,12 @@ turnDisruption=+(((Math.sin(aDir)-0.5)*2)+((Math.cos(aDir)-0.5)*-2))/10
 
 cDir=pointAt(curr.x,curr.y,drone.x,drone.y)
 console.log(cDir)
-if (cDir>-Math.PI/6&&cDir<Math.PI/6) {console.log("AHHHHH")}
+//docking
+if (cDir>-3&&cDir<-2.72&&curr.type=="station"&&extMultiBall) {
+console.log("Initiating docking!")
+settings.paused=true
+
+}
 }
  }
 
