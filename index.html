@@ -155,6 +155,7 @@ var power=1000
 var gt=0
 var heat=1
 var fuel = 10000
+const cOff=2
 //start at 10000
 var rkp = false
 var zd = false
@@ -198,7 +199,7 @@ var smoothY = 0;
 var cwidth=canvas.innerWidth
 var cheight=canvas.innerHeight
 var curr2
-var player = {hp:100,air:100,repairCharges:3,dizzy:0,cameraThrow:0,cameraThrowX:0,cameraThrowY:0,credits:1000,jobs:[],driving:true}
+var player = {hp:100,air:100,repairCharges:3,dizzy:0,cameraThrow:0,cameraThrowX:0,cameraThrowY:0,credits:1000,jobs:[],driving:true,visionRadius:45}
 var xo
 var drone = {x:50,y:0,t:0,w:32,h:32,r:0,hp:100}
 var turnSpeed=0
@@ -215,7 +216,7 @@ var rd = false
 var dying=false
 var sx=0
 var sy=0
-const settings={runOutOfView:true,renderDist:w*h,cameraChase:true,paused:false};
+const settings={runOutOfView:true,renderDist:w*h,cameraChase:true,paused:false,hardPaused:false,drawFOV:true};
 var seconds=0
 var qd=false
 function resetSys(sys) {
@@ -252,6 +253,11 @@ if(random(0,4)==1&&amnt>5) {
 entities.push({x:drone.x,y:drone.y,w:randSize,h:randSize,sprite:document.getElementById("d"+String(random(1,2))),dist:1,type:"debris",sx:newMove.x,sy:newMove.y,t:drone.t,r:0.0001,ts:turnSpeed+random(-10,10),life:randLife,mass:0.1})
 }
 }
+}
+function wrapRadian(radians) {
+  const pi2 = 2 * Math.PI;
+  // Use remainder operator and normalize to positive
+  return ((radians % pi2) + pi2) % pi2;
 }
 function pushMsg(msg) {
 newMsg = document.createElement('div');
@@ -409,6 +415,11 @@ ry=fieldY+Math.cos(random(-1000,1000))*fieldRadius
 entities.push({x:rx,y:ry,w:size,h:size,sprite:sprite,dist:1,type:"astroid",sx:0,sy:0,t:randomT,r:size,visible:true,mass:size/10})
 }
 }
+
+//add non-specific variables
+for (i6 in entities) {
+entities[i6].vFade=0
+}
 // this function puts a number through a very quik sinwave, even though its actually using cos, but im not going to call it a "Coswave" (that actualy sounds cool nvm) resulting in a seemingly random, yet predictable result.
 //"I can't beleive its not Math.random()!"
 function genSV(seed,off,agit) {
@@ -457,6 +468,16 @@ if(!o){
 o=0
 }
 return Math.atan2(startX-targetX,startY-targetY)+o
+}
+function wrapAngle(angle) {
+    // Normalize the angle to the range [0, 360) first
+    let normalizedAngle = angle % 360;
+    if (normalizedAngle >= 180) {
+        normalizedAngle -= 360;
+    } else if (normalizedAngle < -180) {
+        normalizedAngle += 360;
+    }
+    return normalizedAngle;
 }
 function calcDist(x1,y1,x2,y2) {
 dx = x2 - x1
@@ -675,7 +696,6 @@ py=s1.y
 	 pushMsg("This is the chatBox.")
 function tick() {
 
-
 if (gt%10==9&&w*h!==window.innerWidth*window.innerHeight) {
  w = window.innerWidth
  h = window.innerHeight
@@ -744,7 +764,7 @@ if (pd) {zoom=Math.max(zoom*0.99,0.4)}
 zoom=Math.max(0,zoom)
 	 ctx.save()
 	  
-	 ctx.translate((w/2)+player.cameraThrowY,(h/2)+player.cameraThrowX)
+	 ctx.translate((w/2)+player.cameraThrowY,(h/cOff)+player.cameraThrowX)
     ctx.scale(zoom,zoom)
 	 if (player.dizzy>0) {}
 	 ctx.rotate(player.cameraThrow)
@@ -759,7 +779,7 @@ seconds = Math.floor(gt/100)
     
 	 
     setTimeout(() => { 
-	 if (!settings.paused) {
+	 if (!settings.hardPaused&&!settings.paused) {
         ctx.clearRect(-100000,-100000,w*1000,h*1000)
 		  const newPosX = ((smoothX - (w / 2)) * -0.025)/zoom
         const newPosY = ((smoothY - (h / 2)) * -0.04)/zoom
@@ -882,7 +902,19 @@ collisionFollowThrough(curr,{x:0,y:0,r:0})
 				ctx.closePath()
 				}
 			  }
+			  if (i==2){console.log(Math.abs(pointAt(curr.x,curr.y,drone.x,drone.y)-trueTurn* Math.PI/180))}
+			  	if ((Math.abs(pointAt(curr.x,curr.y,drone.x,drone.y)-trueTurn*-Math.PI/180))<(player.visionRadius)*Math.PI/180||curr.dist>1||getDist(drone.x,drone.y,curr.x,curr.y)<7+curr.r) {
+				curr.vFade=Math.max(0,curr.vFade-0.05)
+				
+
+			
+				}else {curr.vFade=Math.min(1,curr.vFade+0.01)}
+				if (curr.vFade<1){
+									oldfilt = ctx.filter
+				ctx.filter = `opacity(${100-curr.vFade*100}%)`
 				ctx.drawImage(curr.sprite,-curr.w/2,-curr.h/2,curr.w,curr.h)
+				ctx.filter=oldfilt
+				}
 				}
 				
 				if(debug&&curr.dist==1){
@@ -998,6 +1030,7 @@ sy=sy/1.01
 turnSpeed=turnSpeed/(1+(0.1*(gyro.eff/100)))
 
 				} 
+				
 				  strafeSpeed=strafeSpeed/1000
 				shipSystems()
 				 heat+= Math.abs(speed*1000)
@@ -1006,7 +1039,7 @@ turnSpeed=turnSpeed/(1+(0.1*(gyro.eff/100)))
 				 turnSpeed=(turnSpeed)/(1+(0.02*(gyro.eff/100)))
 			 	 speed=speed/1.1
 				 commandedSpeed=commandedSpeed/1.1
-				 trueTurn = trueTurn-(trueTurn-drone.t)/10
+				 trueTurn = wrapAngle(drone.t)
 sx=sx+ (Math.sin((trueTurn*-1) * Math.PI/180)*(speed)/1)
 sy=sy+  (Math.cos((trueTurn*-1) * Math.PI/180)*(speed)/1)
 }
@@ -1018,7 +1051,7 @@ drone.y += sy
 				//offsets=movedir(0,0,trueTurn,speed*100) 
 offsets=[0,0]
 				//console.log(offsets)
-				ctx.translate((w/2-offsets[0])+player.cameraThrowX, (h/2-offsets[1])+player.cameraThrowY);
+				ctx.translate((w/2-offsets[0])+player.cameraThrowX, (h/cOff-offsets[1])+player.cameraThrowY);
 		
     ctx.scale(zoom/10,zoom/10)
 	 if (settings.cameraChase){ctx.rotate(Math.PI)} else {ctx.rotate(trueTurn* (Math.PI/180))}
@@ -1057,6 +1090,53 @@ offsets=[0,0]
 				ctx.filter = oldfilt
 				
 				ctx.drawImage(dronesprite,-64,-64,128,128)
+				//draw FOV cone.
+								if (settings.drawFOV) {
+				oldFilt=ctx.filter
+				ctx.filter=`opacity(${60}%)`
+				ctx.save()
+			   ctx.globalCompositeOperation = 'destination-out'
+				ctx.beginPath();
+				ctx.lineWidth=(w*h)/5.0425
+				visArcSize=4
+				//left arc
+				ctx.arc(0,0,(w*h)/10,(-Math.PI/visArcSize)+Math.PI,(Math.PI/visArcSize))
+				
+				ctx.stroke()
+				ctx.closePath();
+				ctx.beginPath();
+				ctx.lineWidth=(w*h)/5.045
+				visArcSize=4
+				//left arc
+				ctx.arc(0,0,(w*h)/10,(-Math.PI/visArcSize)+Math.PI,(Math.PI/visArcSize))
+				
+				ctx.stroke()
+				ctx.closePath();
+				//-------
+				ctx.beginPath();
+				ctx.lineWidth=(w*h)/5.0475
+				visArcSize=4
+				//left arc
+				ctx.arc(0,0,(w*h)/10,(-Math.PI/visArcSize)+Math.PI,(Math.PI/visArcSize))
+				
+				ctx.stroke()
+				ctx.closePath();
+				ctx.beginPath();
+				ctx.lineWidth=(w*h)/5.05
+				visArcSize=4
+				//left arc
+				ctx.arc(0,0,(w*h)/10,(-Math.PI/visArcSize)+Math.PI,(Math.PI/visArcSize))
+				
+				ctx.stroke()
+				ctx.closePath();
+
+			
+								
+				//right arc
+				
+				
+				ctx.restore();
+				}
 				ctx.restore();
 				
 		
@@ -1104,21 +1184,21 @@ youAreDie=true
 player.air-=0.05+cockpit.dam/1000
 player.air += 2/(101-systems.cockpit.eff)
 player.air=Math.min(100,player.air)
-if(player.air<0) {
-//holy shit i cant breathe eughguhehuehgeghegheuhuehguhegheghegheugheh
-player.hp-=0.1
-}
+if(player.air<0) {player.hp-=0.1}//holy shit i cant breathe eughguhehuehgeghegheuhuehguhegheghegheugheh
+
+
+
 if(player.hp<0) {
-//holy shit im dead
+//holy shit i'm dead
 youAreDie=true
 }
 engine.heat+=0.1+(Math.abs(commandedSpeed/100)*engine.eff)*10
 fthrust.heat+=0.1+(Math.abs(commandedSpeed/100)*engine.eff)*10
 engine.pwrUsg=-1*Math.abs(250/100)*engine.eff
- speed=(commandedSpeed/100)*fthrust.eff
+speed=(commandedSpeed/100)*fthrust.eff
 
 
- //cooler can do its thing., if it isnt on, make it cool mutch slower.
+ //cooler can do its thing., if it isnt on, make it cool much slower.
 avrgHeat=20
 heatProbe=[]
 overallHealth=[]
@@ -1265,7 +1345,7 @@ console.log(cDir)
 //docking
 if (cDir>-3&&cDir<-2.72&&curr.type=="station"&&extMultiBall) {
 console.log("Initiating docking!")
-settings.paused=true
+settings.hardPaused=true
 
 }
 }

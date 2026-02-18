@@ -9,7 +9,7 @@ add guns
 they sent an email
 
 add system that uses pending alerts for the message system
-like: ["im dying","im dying but now purple for some reason; idk man im just dying, ok??"]
+like: ["im dying","im dying but now purple for some reason; idk man im just dying, ok??"] -- done.
 
 pending notifictations
 then remove the first one and broadcast it
@@ -18,3 +18,5 @@ then remove the first one and broadcast it
 also add collision for all
 
 optimisation time!!!!!!
+
+check difference from its current turn when turning twoards it
