@@ -7,7 +7,7 @@
 </head>
 <body>
 
-<div style="position:absolute; width:520px; height:64px; top:50%;left:50%;display: flex; flex-direction: column-reverse;z-index:8;overflow:auto;color:#c9a100;"  id="messageBox" ></div>
+<div style="position:absolute; width:520px; height:64px; top:50%;left:50%;display: flex;z-index:8;overflow:auto;color:#c9a100;"  id="messageBox" ></div>
 <h1>If your seeing this you either need to enable javascript or something broke.</h1>
 <img hidden=true src="pod.png" id="pod">
 
@@ -50,11 +50,11 @@
 
 </div>
 <!--station docking UI.-->
-<div style="color:#c9a100;z-index:10;position:fixed;top:0%;left:0%;width: 100vw;height: 100vh;background-color:#0f0f0f;"id="stationUI" hidden=true  >
-<div style="color:#c9a100;z-index:10;position:fixed;top:0%;left:0%;width: 525px;height: 90vh;display: flex; background-color:#141414;overflow:auto;background-image: url('UIBK.gif')"id="stationConsole" hidden=true >
+<div style="color:#c9a100;z-index:10;position:fixed;top:0%;right:0%;width: 35%;height: 100vh;background-color:#0f0f0f;"id="stationUI"   >
+<div style="color:#c9a100;z-index:10;top:0%;left:0%;width: 100%;height: 90%;display: flex; background-color:#141414;overflow:auto;flex-direction: column-reverse;background-image: url('UIBK.gif');background-Size: 100px 100px;"id="stationConsole"  >
 
 </div>
-<div style="color:#c8a100;z-index:10;position:fixed;top:90%;left:0%;width: 255px;height: 10vh; background-color:#141414;"id="sUiCPanel" > 
+<div style="color:#c8a100;z-index:10;top:90%;left:0%;width: 255px;height: 10%; background-color:#141414;"id="sUiCPanel" > 
 <input type="text" id="scInput">
 </div>
 </div>
@@ -161,6 +161,7 @@ var speedDiff=0
 var speed=0
 var driving=true
 var off=Math.PI*-2
+
 var dkp = false
 var power=1000
 var gt=0
@@ -168,20 +169,21 @@ var heat=1
 var fuel = 10000
 const cOff=2
 //start at 10000
+const settings={runOutOfView:true,renderDist:w*h,cameraChase:true,paused:false,hardPaused:false,drawFOV:false,lightFalloff:4,conSize:1.5,gameSpeed:10};
 var rkp = false
 var zd = false
-var hunger = 1000000
 var spin = 0
 var lkp = false
 var ox = 0
 var oy = 0
 var hoff=0
 var ox3 = 0
-canvas.width = window.innerWidth * 1
+canvas.width = window.innerWidth/settings.conSize
 canvas.height = window.innerHeight * 1
 
-var w = window.innerWidth
+var w = window.innerWidth/settings.conSize
 var h = window.innerHeight
+stationUI.style.left=w
 var zoom=5
 var colliding = false
 var commandedSpeed=0
@@ -210,7 +212,8 @@ var smoothY = 0;
 var cwidth=canvas.innerWidth
 var cheight=canvas.innerHeight
 var curr2
-var player = {hp:100,air:100,repairCharges:3,dizzy:0,cameraThrow:0,cameraThrowX:0,cameraThrowY:0,credits:1000,jobs:[],driving:true,visionRadius:45,docked:false,dCool:0}
+
+var player = {hp:100,air:100,repairCharges:3,dizzy:0,cameraThrow:0,cameraThrowX:0,cameraThrowY:0,credits:1000,jobs:[],driving:true,visionRadius:45,docked:false,dCool:0,typing:false}
 var xo
 var drone = {x:50,y:0,t:0,w:32,h:32,r:0,hp:100}
 var turnSpeed=0
@@ -227,13 +230,36 @@ var rd = false
 var dying=false
 var sx=0
 var sy=0
-const settings={runOutOfView:true,renderDist:w*h,cameraChase:true,paused:false,hardPaused:false,drawFOV:false,lightFalloff:4};
+
 var seconds=0
 var qd=false
 function inTerm(rawtxt) {
-
+//parse the text
+halfmadeTxt=rawtxt
+if (rawtxt.split('')[0]=="@"){
+halfmadeTxt=rawtxt
 pushConMsg(">>"+rawtxt)
-txt=rawtxt.toLowerCase()
+halfmadeTxt=rawtxt.replaceAll("@","@ ")
+
+}else {
+pushConMsg(">>"+rawtxt)
+}
+console.log(rawtxt)
+halfmadeTxt=halfmadeTxt.toLowerCase().split(' ')
+txt=halfmadeTxt[0]
+
+if (halfmadeTxt.length>1){
+arg1=halfmadeTxt[1]
+}else(arg1="")
+if (halfmadeTxt.length>2){
+arg2=halfmadeTxt[2]
+}else(arg2="")
+
+//alright i think i know what they said..
+
+
+//am i communicating with a station
+if(player.docked){
 if(txt=="help") {pushConMsg("'Undock': Initiates undocking procedure.")
 pushConMsg("'Clear': Clears this console.")
 pushConMsg("'Store': Sends store manifest packet.")
@@ -244,8 +270,7 @@ player.docked=false
 settings.paused=false
 settings.hardPaused=false
 player.dCool=125
-stationUI.hidden=true
-    canvas.width = window.innerWidth; 
+    canvas.width = window.innerWidth/settings.conSize
     canvas.height = window.innerHeight;
     canvas.focus();
 }
@@ -256,13 +281,82 @@ console.log(curr3)
 stationConsole.removeChild(curr3)
 }
 }
+}else{
+//i guess i'm not.
+if(txt=="help") {
+pushConMsg("showing help. (tip: the word 'sub' before the name of a command means it is a subcommand!)")
+pushConMsg("'help' displays basic commands, for help on a specific topic add a command afer eg:'help sys'")
+pushConMsg("'Clear': Clears this console.")
+pushConMsg("'sys' base command for system component managment. can also use '@' or 's' for the same result")
+if (arg1=="sys") {
+pushConMsg("'sys' the gateway to all of your general ship component management")
+pushConMsg("sub'stat argument' checks status of component")
+pushConMsg("sub'getall' gets all component names")
+pushConMsg("sub'stats argument' gets important info of your components.")
+}
+}
+if(txt=="sys"||txt=="@"||txt=="s"&&!arg1=="") {
+if (arg1=="getall"||arg1=="g"||arg1=="get") {
 
+for (i8 in systems) {
+
+if (systems[i8].eff<70&&systems[i8].on){
+
+addMsg="[!]"
+if (systems[i8].eff<45) {addMsg="[!!]"}
+if (systems[i8].eff<20) {addMsg="[!!!]"}
+if (systems[i8].eff<5) {addMsg="[!!!!]"}
+}else{addMsg="[ ]"}
+pushConMsg(addMsg+" "+i8+" : "+systems[i8].des)
+}
+
+}
+if (arg1=="power"||arg1=="pow"||arg1=="p") {
+
+for (i8 in systems) {
+console.log(String(i8),arg2,String(i8)==arg2)
+if (String(i8)==arg2) {
+systems[i8].on=!systems[i8].on
+pushConMsg(i8+".pflow = "+String(systems[i8].on).toUpperCase())
+}
+}
+
+}
+if (arg1=="status"||arg1=="stats"||arg1=="s") {
+found=false
+for (i8 in systems) {
+console.log(String(i8),arg2,String(i8)==arg2)
+if (String(i8)==arg2) {
+found=true
+pushConMsg("DES: "+systems[i8].des)
+pushConMsg("SYSID: " +'"'+i8+'"')
+pushConMsg("EFF: "+systems[i8].eff+"%")
+pushConMsg("HEAT: "+systems[i8].temp+"C")
+pushConMsg("ENABLED: "+systems[i8].on)
+pushConMsg("DAMAGE: "+systems[i8].dam+"%")
+}
+}
+if(!found) {
+pushConMsg("POWER: "+Math.round(-cpsg*10)/10+"W")
+}
+
+}
+}
+
+
+
+
+
+
+}
 }
 function resetSys(sys) {
 return{engine:{dam:0,on:true,des:"Engine",heat:0,eff:100,maxHeat:500,insulation:10,pwrUsg:-250,minHeat:-100,missing:false,dmgRes:1},cooling:{dam:0,on:true,des:"Cooling System",heat:20,eff:100,maxHeat:150,insulation:0,pwrUsg:50,minHeat:-100,missing:false,dmgRes:1},tank:{dam:0,on:true,des:"Plasma Tank",heat:20,eff:100,maxHeat:125,insulation:0,pwrUsg:0,minHeat:-100,missing:false,dmgRes:1},gyroscope:{dam:0,on:true,des:"Gyroscope",heat:20,eff:100,maxHeat:200,insulation:0,pwrUsg:35,minHeat:-100,missing:false,dmgRes:7},sideThrust:{dam:0,on:true,des:"Side Thrusters",heat:20,eff:100,maxHeat:1000,insulation:10,pwrUsg:25,minHeat:-100,missing:false,dmgRes:1},thruster:{dam:0,on:true,des:"Main Thrusters",heat:20,eff:100,maxHeat:1000,insulation:10,pwrUsg:50,minHeat:-100,missing:false,dmgRes:1},shipComputer:{dam:0,on:true,des:"Ship Computer",heat:0,eff:100,maxHeat:125,insulation:5,pwrUsg:15,minHeat:-200,missing:false,dmgRes:1},cockpit:{dam:0,on:true,des:"Cockpit",heat:20,eff:100,maxHeat:80,insulation:5,pwrUsg:15,minHeat:-200,missing:false,dmgRes:3}}
 }
 
 var systems=resetSys()
+
+
 function giveDamage(amntRaw,acc) {
 player.cameraThrow+=random(-1,1)*Math.PI/180
 player.cameraThrowX+=random(-1,1)
@@ -293,6 +387,7 @@ entities.push({x:drone.x,y:drone.y,w:randSize,h:randSize,sprite:document.getElem
 }
 }
 }
+var lastThing=stationConsole
 function wrapRadian(radians) {
   const pi2 = 2 * Math.PI;
   // Use remainder operator and normalize to positive
@@ -312,11 +407,12 @@ function pushConMsg(msg) {
 newMsg = document.createElement('div');
 newMsg.innerHTML=msg
 newMsg.style.top = `${cMsgDown}px`
-cMsgDown+=Math.ceil((msg.length/53)+1)*18
+cMsgDown+=Math.ceil((msg.length/Math.ceil((window.innerWidth/settings.conSize)/16))+1)*18
 
-newMsg.style.position = "absolute"
+//newMsg.style.position = "fixed"
 
-stationConsole.insertAdjacentElement('afterbegin', newMsg);
+lastThing.insertAdjacentElement('beforeend', newMsg);
+lastThing=newMsg
 }
 var gyro=systems.Gyroscope
 var prevDir=0
@@ -374,6 +470,7 @@ lastPressed=newButt
 partSelected=i
 console.log(systems[i])
 newButt.style.backgroundColor = "lightgrey";
+
 newButt.addEventListener('click', (evnt) => {
 
 src=evnt.srcElement
@@ -640,8 +737,8 @@ py=s1.y
 			
 		  }
  })
-
-
+scIn.addEventListener('blur', () => {player.typing=false})
+scIn.addEventListener('focus', () => {player.typing=true})
 
     document.addEventListener('keydown', function(event) {
 	 if(!interacted) {document.getElementById("logo").hidden=true;}
@@ -649,17 +746,29 @@ py=s1.y
 		timeSinceLastInput=0
        kc = event.keyCode
 		  console.log(kc)
-		  		  	if (kc == 13&&player.docked&&!scIn.value=="") {
+		  		  	if (kc == 13) {
 
 			//enter in text field
+			if (!scIn.value==""){
 			inTerm(String(scIn.value))
 			scIn.value = ""
+			scIn.blur()
+			}else{scIn.blur()}
+			
 		  }
-		  if (!settings.hardPaused) {
+		  if (!settings.hardPaused&&!player.typing) {
 		  		  	if (kc == 68) {
 
 			dd=true
 			
+		  }
+		  		  		  	if (kc == 84) {
+
+			
+			setTimeout(() => { 
+		typing=true
+			scIn.focus()
+			},1)
 		  }
 		  		  		  	if (kc == 67) {
 
@@ -755,9 +864,10 @@ py=s1.y
 	 var crashSpin=0
 	 pushMsg("This is the chatBox.")
 function tick() {
-
-if (gt%10==9&&w*h!==window.innerWidth*window.innerHeight) {
- w = window.innerWidth
+drone.sx=sx
+drone.sy=sy
+if (gt%10==9&&!w*h==window.innerWidth*window.innerHeight) {
+ w = window.innerWidth/settings.conSize
  h = window.innerHeight
  canvas.width=w
  canvas.height=h
@@ -840,9 +950,7 @@ seconds = Math.floor(gt/100)
 	 
     setTimeout(() => { 
 	 //are we docked to something right now?
-	 if (player.docked){
-		stationUI.hidden=false
-	 }else{stationUI.hidden=true}
+
 	 if (!settings.hardPaused&&!settings.paused) {
 	 
         ctx.clearRect(-100000,-100000,w*1000,h*1000)
@@ -901,8 +1009,8 @@ entities.splice(i,1)
 }
 
 if (curr.type=="freighter") {
-curr.sx=(Math.sin((curr.t) * Math.PI/-180))
-curr.sy=(Math.cos((curr.t) * Math.PI/-180))
+curr.sx=(Math.sin((curr.t) * Math.PI/-180))*2
+curr.sy=(Math.cos((curr.t) * Math.PI/-180))*2
 
 curr.t+=1
 }
@@ -1184,7 +1292,7 @@ offsets=[0,0]
 			}
         tick()
 		  
-    }, 10);
+    }, settings.gameSpeed);
 }
  function stg(thing) {
 return Math.round(thing / 32) * 32
@@ -1316,7 +1424,8 @@ powerMeter.innerText=String(Math.round(power/10))+"%; "+String(Math.round(-cpsg)
  }
  // move collision handling its own function thingy
 
- function collisionFollowThrough(curr,embSelect,extMultiBall) {
+
+ function collisionFollowThrough(victim,curr,embSelect,extMultiBall) {
 if (curr.type=="explosion"){
 //oh thats a bomb..
 giveDamage(curr.dmg,3)
@@ -1335,11 +1444,11 @@ calY=curr.y+embSelect.y
 calR=curr.r
 if(extMultiBall){calR=embSelect.r}
 
-aDir=pointAt(calX,calY,drone.x,drone.y)+Math.PI*-1
-rDir=pointAt(calX,calY,drone.x,drone.y)
+aDir=pointAt(calX,calY,victim.x,victim.y)+Math.PI*-1
+rDir=pointAt(calX,calY,victim.x,victim.y)
 prevDir=aDir
 // do you know how fast you were going back there?
-relativeSpeed = (Math.abs(curr.sx-sx)+Math.abs(curr.sy-sy))
+relativeSpeed = getDist(sx,sy,drone.
 realRelativeSpeed = (Math.abs(curr.sx-sx)+Math.abs(curr.sy-sy))
 
 
@@ -1351,8 +1460,8 @@ giveDamage(relativeSpeed*10,Math.ceil(relativeSpeed))
 
 }
 collided=true
-drone.x=calX+(Math.sin((aDir)))*(calR/2)
-drone.y=calY+(Math.cos((aDir)))*(calR/2)
+victim.x=calX+(Math.sin((aDir)))*(calR/2)
+victim.y=calY+(Math.cos((aDir)))*(calR/2)
 //-drone.r/4
 sx-=(sx-curr.sx)/25
 sy-=(sy-curr.sy)/25
