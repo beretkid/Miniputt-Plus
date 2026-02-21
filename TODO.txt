@@ -20,3 +20,12 @@ also add collision for all
 optimisation time!!!!!!
 
 check difference from its current turn when turning twoards it
+
+make it so you need to purchase the systems panel as an upgrade
+
+
+add grain to the console when the ship computer is damaged
+
+add @r for repairs
+
+get a broad repair upgrade to add an option to repair the three most damaged systems
