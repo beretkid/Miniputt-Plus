@@ -213,7 +213,7 @@ var cwidth=canvas.innerWidth
 var cheight=canvas.innerHeight
 var curr2
 
-var player = {hp:100,air:100,repairCharges:3,dizzy:0,cameraThrow:0,cameraThrowX:0,cameraThrowY:0,credits:1000,jobs:[],driving:true,visionRadius:45,docked:false,dCool:0,typing:false}
+var player = {hp:100,air:100,repairCharges:3,dizzy:0,cameraThrow:0,cameraThrowX:0,cameraThrowY:0,credits:1000,jobs:[],driving:true,visionRadius:45,docked:false,dCool:0,typing:false,dockedStation:null,upgrades:{controlPanel:{installed:false,cost:500,des:"Ctrl_panel"}}}
 var xo
 var drone = {x:50,y:0,t:0,w:32,h:32,r:0,hp:100}
 var turnSpeed=0
@@ -236,11 +236,11 @@ var qd=false
 function inTerm(rawtxt) {
 //parse the text
 halfmadeTxt=rawtxt
-if (rawtxt.split('')[0]=="@"){
+if (rawtxt.split('')[0]=="@"||rawtxt.split('')[0]=="$"){
 halfmadeTxt=rawtxt
 pushConMsg(">>"+rawtxt)
 halfmadeTxt=rawtxt.replaceAll("@","@ ")
-
+halfmadeTxt=rawtxt.replaceAll("$","$ ")
 }else {
 pushConMsg(">>"+rawtxt)
 }
@@ -258,7 +258,7 @@ arg2=halfmadeTxt[2]
 //alright i think i know what they said..
 
 
-//am i communicating with a station
+//am i communicating with a station?
 if(player.docked){
 if(txt=="help") {pushConMsg("'Undock': Initiates undocking procedure.")
 pushConMsg("'Clear': Clears this console.")
@@ -274,11 +274,42 @@ player.dCool=125
     canvas.height = window.innerHeight;
     canvas.focus();
 }
+if (txt=="store"){
+matchFound=false
+
+for ( i9 in player.upgrades) {
+item=player.upgrades[i9]
+if (arg1==item.des.toLowerCase()&&!item.installed){
+matchFound=true
+console.log("AH")
+if (player.credits >= item.cost){player.credits-=item.cost;
+item.installed=true;
+pushConMsg("Upgrade installed.");
+pushConMsg("Now at: "+player.credits+"C")
+}
+}
+}
+if (!matchFound) {
+for ( i9 in player.upgrades){
+item=player.upgrades[i9]
+console.log("wa")
+pushConMsg(item.des+" : "+String(item.cost))
+
+}
+}
+}
 if (txt=="clear"){
 for (i5 in stationConsole.children){
 curr3=stationConsole.children[i5]
 console.log(curr3)
 stationConsole.removeChild(curr3)
+}
+}
+if (txt=="jobs"||txt=="j"){
+pushConMsg("[PACKET MSG RECIEVED]:")
+for ( i9 in player.dockedStation.jobs){
+job=player.dockedStation.jobs[i9]
+pushConMsg("ENTRY"+String(i9+1)+": "+job.name)
 }
 }
 }else{
@@ -348,6 +379,13 @@ pushConMsg("POWER: "+Math.round(-cpsg*10)/10+"W")
 
 
 
+}
+if (txt=="slf"||txt=="$"){
+if (arg1=="credits"||arg1=="c"){
+pushConMsg("Credits balance is at: "+player.credits+"C")
+if ( player.credits < 3 ) {pushConMsg("BROKE MF ALERT!! BROKE MF ALERT!!")}
+
+}
 }
 }
 function resetSys(sys) {
@@ -543,7 +581,7 @@ pushMsg("Repaired "+rng+"Dmg ("+player.repairCharges+"/3)")
 }
 })
 var entities = [{x:75,y:97,w:150,h:150,sprite:p3,dist:9,type:"Planet",sx:0,sy:0,t:0,r:64,grav:100,visible:true,mass:100000},{x:100000,y:97,w:10000,h:10000,sprite:p4,dist:1,type:"bigMan",sx:0,sy:0,t:0,r:10000/1.4,grav:1000,visible:true,mass:100000},{x:10,y:30,w:64,h:64,sprite:rock1,dist:1,type:"Rok",sx:0,sy:0,t:0,r:64,visible:true,mass:10},
-{x:0,y:0,w:32,h:32,sprite:rock1,dist:1,type:"astroid",t:0,sx:0,sy:0,r:32,visible:true,mass:-0.1},{x:300,y:200,w:64,h:64,sprite:freightSprite,dist:1,type:"freighter",t:0,sx:0,sy:0,t:0,r:64,visible:true,mass:2},{x:-200,y:0,w:128,h:128,sprite:stationSprite,dist:1,des:"Alhpa Beta Station 78",type:"station",t:0,sx:0,sy:0,t:0,r:44,visible:true,mass:10000000,collisionPoints:[{x:45,y:0,r:34},{x:-45,y:0,r:34},{x:0,y:-45,r:34},{x:0,y:45,r:34}]}]
+{x:0,y:0,w:32,h:32,sprite:rock1,dist:1,type:"astroid",t:0,sx:0,sy:0,r:32,visible:true,mass:-0.1},{x:300,y:200,w:64,h:64,sprite:freightSprite,dist:1,type:"freighter",t:0,sx:0,sy:0,t:0,r:64,visible:true,mass:2},{x:-200,y:0,w:128,h:128,sprite:stationSprite,dist:1,des:"Alpha Beta Station 78",type:"station",jobs:[{name:"Astroid Clearing"},{name:"Stinkmaster hiring"},{name:"How do i delete job listings"},{name:"cargo haul"}],t:0,sx:0,sy:0,t:0,r:44,visible:true,mass:10000000,collisionPoints:[{x:45,y:0,r:34},{x:-45,y:0,r:34},{x:0,y:-45,r:34},{x:0,y:45,r:34}]}]
 
 generateField=true
 fieldX=1000
@@ -756,13 +794,7 @@ scIn.addEventListener('focus', () => {player.typing=true})
 			}else{scIn.blur()}
 			
 		  }
-		  if (!settings.hardPaused&&!player.typing) {
-		  		  	if (kc == 68) {
-
-			dd=true
-			
-		  }
-		  		  		  	if (kc == 84) {
+		  		  		  		  	if (kc == 84) {
 
 			
 			setTimeout(() => { 
@@ -770,6 +802,13 @@ scIn.addEventListener('focus', () => {player.typing=true})
 			scIn.focus()
 			},1)
 		  }
+		  if (!settings.hardPaused&&!player.typing) {
+		  		  	if (kc == 68) {
+
+			dd=true
+			
+		  }
+
 		  		  		  	if (kc == 67) {
 
 			settings.cameraChase=!settings.cameraChase
@@ -848,7 +887,7 @@ scIn.addEventListener('focus', () => {player.typing=true})
 			
 			pmode=!pmode
 		  }
-		  		  		  		  		  		  if (kc == 71) {
+		  		  		  		  		  		  if (kc == 71&&player.upgrades.controlPanel.installed) {
 			//FEED HIM!!! DO IT FEED HIM NOW!!! FEED HIM!!!
 			
 			
@@ -1027,14 +1066,14 @@ if(checkCircle(drone, {x:curr.x+colpoi.x,y:curr.y+colpoi.y,r:colpoi.r})){
 
 extMultiBall=true;
 embSelect=colpoi;
-collisionFollowThrough(curr,colpoi,true)
+collisionFollowThrough(drone,curr,colpoi,true)
 
 }
 }
 }
 
 if(checkCircle(drone, curr)&&curr.dist==1){
-collisionFollowThrough(curr,{x:0,y:0,r:0})
+collisionFollowThrough(drone,curr,{x:0,y:0,r:0})
 }
 
 
@@ -1448,8 +1487,8 @@ aDir=pointAt(calX,calY,victim.x,victim.y)+Math.PI*-1
 rDir=pointAt(calX,calY,victim.x,victim.y)
 prevDir=aDir
 // do you know how fast you were going back there?
-relativeSpeed = getDist(sx,sy,drone.
-realRelativeSpeed = (Math.abs(curr.sx-sx)+Math.abs(curr.sy-sy))
+relativeSpeed = getDist(curr.sx,curr.sy,drone.sx,drone.sy)
+realRelativeSpeed = getDist(curr.sx,curr.sy,drone.sx,drone.sy)
 
 
 
@@ -1489,6 +1528,7 @@ settings.hardPaused=true
 player.docked=true
 stationUI.hidden=false
 scIn.focus()
+player.dockedStation=curr
 pushConMsg("INIT_DOCKING_MINIPUTT")
 pushConMsg("DOCKING TO "+curr.des)
 pushConMsg("WELCOME, PILOT. PLEASE TYPE 'help' IN THE CONSOLE FOR ASSISTANCE")
