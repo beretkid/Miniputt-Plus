@@ -180,7 +180,7 @@ var heat=1
 var fuel = 10000
 const cOff=2
 //start at 10000
-const settings={runOutOfView:true,renderDist:w*h,cameraChase:true,paused:false,hardPaused:false,drawFOV:false,lightFalloff:4,conSize:1.5,gameSpeed:10,screenDarkness:50,notifEnabled:true};
+const settings={runOutOfView:true,renderDist:w*h,cameraChase:true,paused:false,hardPaused:false,drawFOV:false,lightFalloff:4,conSize:1.5,gameSpeed:10,screenDarkness:50,notifEnabled:true,astroidsCollide:true};
 var rkp = false
 var zd = false
 var spin = 0
@@ -225,9 +225,9 @@ var cwidth=canvas.innerWidth
 var cheight=canvas.innerHeight
 var curr2
 
-var player = {hp:100,air:100,repairCharges:6,dizzy:0,cameraThrow:0,cameraThrowX:0,cameraThrowY:0,credits:1000,jobs:[],driving:true,visionRadius:45,docked:false,dCool:0,typing:false,dockedStation:null,upgrades:{controlPanel:{installed:false,cost:500,des:"Ctrl_panel"}},inCrisis:false,astroidKills:0,fired:false}
+var player = {hp:100,air:100,repairCharges:6,dizzy:0,cameraThrow:0,cameraThrowX:0,cameraThrowY:0,credits:1000,jobs:[],driving:true,visionRadius:45,docked:false,dCool:0,typing:false,dockedStation:null,upgrades:{controlPanel:{installed:false,cost:500,des:"Ctrl_panel"}},inCrisis:false,astroidKills:0,fired:false,pendingWarnings:[]}
 var xo
-var drone = {x:50,y:0,t:0,w:32,h:32,r:0,hp:100}
+var drone = {x:50,y:0,t:0,w:32,h:32,r:0,hp:100,sx:0,sy:0,r:0,mass:1}
 var turnSpeed=0
 var mode = "None"
 var yo
@@ -312,6 +312,16 @@ player.dCool=125
     canvas.height = window.innerHeight;
     canvas.focus();
 }
+if (txt=="warp"){
+for (i9 in entities) {
+if(entities[i]!==station){
+entities.splice(i9,1)
+
+
+}
+}
+}
+
 if (txt=="store"){
 matchFound=false
 
@@ -569,11 +579,11 @@ function wrapRadian(radians) {
 }
 var cMsgDown=0
 function pushMsg(msg) {
-newMsg = document.createElement('div');
-newMsg.innerHTML=msg
+
+msgBox.innerHTML=msg
 
 
-msgBox.insertAdjacentElement('afterbegin', newMsg);
+
 
 timeSinceLastMsg=0;
 }
@@ -620,7 +630,7 @@ return {x:(Math.sin((dir*-1) * Math.PI/180)*Math.round(amnt*100)/100),y:Math.cos
 function checkCircle(c1, c2) {
      dist = Math.hypot(c1.x - c2.x, c1.y - c2.y)
 
-    minDist = (c1.r/3) + (c2.r/2)
+    minDist = (c1.r/2) + (c2.r/2)
 
     return dist <= minDist
 }
@@ -717,22 +727,29 @@ pushMsg("Repaired "+rng+"Dmg ("+player.repairCharges+"/6)")
 }
 }
 })
-var entities = [{x:75,y:97,w:150,h:150,sprite:p3,dist:9,type:"Planet",sx:0,sy:0,t:0,r:64,grav:100,visible:true,mass:100000},{x:100000,y:97,w:10000,h:10000,sprite:p4,dist:1,type:"bigMan",sx:0,sy:0,t:0,r:10000/1.4,grav:1000,visible:true,mass:100000},{x:10,y:30,w:64,h:64,sprite:rock1,dist:1,type:"Rok",sx:0,sy:0,t:0,r:64,visible:true,mass:10},{x:300,y:200,w:64,h:64,sprite:freightSprite,dist:1,type:"freighter",t:0,sx:0,sy:0,t:0,r:64,visible:true,mass:2},{x:-200,y:0,w:128,h:128,sprite:stationSprite,dist:1,des:"Alpha Beta Station 78",type:"station",jobs:[{name:"Astroid Clearing"},{name:"Stinkmaster hiring"},{name:"How do i delete job listings"},{name:"cargo haul"}],t:0,sx:0,sy:0,t:0,r:44,visible:true,mass:10000000,collisionPoints:[{x:45,y:0,r:34},{x:-45,y:0,r:34},{x:0,y:-45,r:34},{x:0,y:45,r:34}]}]
+var entities = [{x:75,y:97,w:150,h:150,sprite:p3,dist:9,type:"Planet",sx:0,sy:0,t:0,r:64,grav:100,visible:true,mass:100000},{x:100000,y:97,w:10000,h:10000,sprite:p4,dist:1,type:"bigMan",sx:0,sy:0,t:0,r:10000/1.4,grav:1000,visible:true,mass:100000},{x:300,y:200,w:64,h:64,sprite:freightSprite,dist:1,type:"freighter",t:0,sx:0,sy:0,t:0,r:64,visible:true,mass:2}]
+var station=entities.push({x:0,y:0,w:128,h:128,sprite:stationSprite,dist:1,des:"Alpha Beta Station 78",type:"station",jobs:[{name:"Astroid Clearing"},{name:"Stinkmaster hiring"},{name:"How do i delete job listings"},{name:"cargo haul"}],t:0,sx:0,sy:0,t:0,r:44,visible:true,mass:10000000,collisionPoints:[{x:45,y:0,r:34},{x:-45,y:0,r:34},{x:0,y:-45,r:34},{x:0,y:45,r:34}]})
 
 generateField=true
-fieldX=1000
-fieldY=1000
-fieldRadius=1000
 if(generateField) {
-rndm=random(100,200,0)
-for (let i = 0; i < rndm; i++) {
+regenField(random(100,200),5000,random(1000000,9999999))
+}
+
+
+
+function regenField(amnt,fieldRadius,seed){
+amnt=Math.round(amnt)
+for (let i = 0; i < amnt; i++) {
 rng=random(0,1)
 if (rng==1){sprite=a3}
 if (rng==0){sprite=rock1}
 size=random(32,160)
 randomT=random(-180,180)
-rx=fieldX+Math.sin(random(-1000,1000,0))*fieldRadius
-ry=fieldY+Math.cos(random(-1000,1000,0))*fieldRadius
+
+rDist=genSV2(100,fieldRadius,seed,i*102)
+rDir=genSV2(-180,180,seed,i*100)*Math.PI/180
+rx=Math.sin(rDir)*rDist
+ry=Math.cos(rDir)*rDist
 
 
 entities.push({x:rx,y:ry,w:size,h:size,sprite:sprite,dist:1,type:"astroid",sx:0,sy:0,t:randomT,r:size,visible:true,mass:size/10,health:size/1})
@@ -749,16 +766,17 @@ function genSV(seed,off,agit) {
 // you dont NEED to set thease but i made it so you have the option to change the cosine rate and more importantly, the offset.
 if (!off){off=0}
 if (!agit){agit=1000000000}
-return Math.abs(((Math.cos(Math.pow(seed+off,2)*agit)*agit))%1)
+off=100+Math.E*Math.pow(off,2)-Math.sin(off)
+seed=100+Math.E*Math.pow(seed,2)-Math.cos(off)
+return Math.abs(Math.cos(seed+off))%1
 }
+
+
 function genSV2(min,max,seed,off,agit) {
 if (!off){off=0}
 if (!agit){agit=1000000000}
-  min = Math.ceil(min);
-  max = Math.floor(max);
-  return Math.floor(genSV(seed,off,agit) * (max - min + 1)) + min;
+  return genSV(seed,off,agit) * ((max-1) - min + 1) + min
 }
-
 function newExplosion(nx,ny,size,damage) {
 newBoom={x:nx,y:ny,w:64,h:64,sprite:explosionSprite,dist:1,type:"explosion",t:0,sx:0,sy:0,t:0,r:1,visible:false,dmg:damage,maxSize:32}
 entities.push(newBoom)
@@ -788,7 +806,6 @@ snap=1
 }
 
 if (snap<0||snap==0){
-console.log("euhm")
   return (Math.random() * ((max-1) - min + 1)) + min;
 }else{
   min = Math.ceil(min*snap)/snap;
@@ -1061,22 +1078,28 @@ scIn.addEventListener('focus', () => {player.typing=true})
 	 pushMsg("This is the chatBox.")
 function tick() {
 player.fired=false
-drone.sx=sx
-drone.sy=sy
-
+sx=drone.sx
+sy=drone.sy
+player.pendingWarnings=[]
+player.inCrisis=false
 if (gt%100==9&&settings.notifEnabled) {
 //console.log(systems.laser)
-if(systems.laser.heat>systems.laser.maxHeat) {
+
+if(systems.laser.heat>systems.laser.maxHeat-30) {
 player.inCrisis=true
 
 console.log(laser)
 
-pushConMsg("WARNING!! LASER TEMP AT: "+Math.round(laser.heat)+"C/"+laser.maxHeat+"C")
+player.pendingWarnings.push("WARNING!! LASER TEMP AT: "+Math.round(laser.heat)+"C/"+laser.maxHeat+"C")
 }
 if (cockpit.dam>70||cockpit.eff<20&&cockpit.on||player.air <50){
-pushConMsg("WARNING! LIFE SUPPORT EFFICENCY AT "+cockpit.eff+"%! ")
+player.pendingWarnings.push("WARNING! LIFE SUPPORT EFFICENCY AT "+cockpit.eff+"%! ")
 player.inCrisis=true
 }
+if (player.inCrisis){
+pushMsg(player.pendingWarnings)
+}
+
 }
 
 
@@ -1116,6 +1139,8 @@ pushMsg("You died!")
 youAreDie=false
 	drone.x=50
 drone.y=0
+drone.sx=0
+drone.sy=0
 sx=0
 sy=0
 fuel=1000
@@ -1126,9 +1151,7 @@ drone.t=0
 turnSpeed=0
 trueTurn=0
 alarmPlayed=false
-drone.hp=100
-audBoom.play()
-audAlarm2.loop=false
+
 for (i4 in systems) {
 curr=systems[i4]
 curr.dam=0
@@ -1144,7 +1167,7 @@ curr.missing=false
 	
 
 dying=(ticksUntilBoom>0)
-totalVelocity= Math.abs(sx+sy)
+totalVelocity= Math.abs(drone.sx+drone.sy)
 if (od) {zoom=Math.max(zoom*1.01,0.4)}
 if (pd) {zoom=Math.max(zoom*0.99,0.4)}
 zoom=Math.max(0,zoom)
@@ -1176,8 +1199,8 @@ seconds = Math.floor(gt/100)
 		  
 			
 		 	
-		  	osx=sx
-			osy=sy
+		  	osx=drone.sx
+			osy=drone.sy
 		    for (i in entities) {
             curr = entities[i]
 				if(settings.runOutOfView&&((getDist(curr.x,curr.y,drone.x,drone.y)/curr.dist)-zoom)>1000/zoom) {
@@ -1194,8 +1217,8 @@ curr.t+=0.01
 gravDir=pointAt(drone.x,drone.y,curr.x,curr.y)
 distance=getDist(drone.x,drone.y,curr.x,curr.y)
 if (distance<curr.r*2.5) {
-sx+=(Math.sin(gravDir)*(curr.grav)/(distance*-100))
-sy+=(Math.cos(gravDir)*(curr.grav)/(distance*-100))
+drone.sx+=(Math.sin(gravDir)*(curr.grav)/(distance*-100))
+drone.sy+=(Math.cos(gravDir)*(curr.grav)/(distance*-100))
 }
 }
 if (curr.type=="jettisoned") {
@@ -1253,8 +1276,9 @@ embSelect={x:0,y:0,r:0}
 
 for (i0 in entities) {
 las=entities[i0]
+if (checkCircle(curr,las)&&curr.dist==1&&!curr.noCollide) {
 if(las.type=="laser"){
-if (checkCircle({x:curr.x,y:curr.y,r:curr.r},las)) {
+
 
 if (curr.type=="astroid") {
 
@@ -1266,8 +1290,22 @@ curr.sy-=Math.cos(las.t*-Math.PI/180)*0.1/curr.mass
 console.log("oeughhh")
 
 }
+}else{
+//console.log("Im fixing this shit frfr",las,curr)
+
+if(checkCircle(curr,las)&&las.dist==1&&!las.noCollide&&i0!==i&&settings.astroidsCollide){
+collisionFollowThrough(curr,las,{x:0,y:0,r:0})
+
 }
+
+//console.log("I fixed this shit fr",las,curr)
 }
+
+
+
+
+}
+
 }
 if (curr.collisionPoints) {
 
@@ -1278,7 +1316,8 @@ if(checkCircle(drone, {x:curr.x+colpoi.x,y:curr.y+colpoi.y,r:colpoi.r})){
 
 extMultiBall=true;
 embSelect=colpoi;
-collisionFollowThrough(drone,curr,colpoi,true,i6)
+collisionFollowThrough(drone,curr,{x:curr.x+colpoi.x,y:curr.y+colpoi.y,r:colpoi.r},true,i6)
+
 
 }
 }
@@ -1395,7 +1434,7 @@ ctx.fillRect((w/2)+(Math.sin((prevDir))*20)-5,(h/2)+(Math.cos((prevDir))*20)-5,1
         if (driving) {
 		  if (dd) {
 		               							if(pmode){
-							sx+=0.001
+							drone.sx+=0.001
 							}else{
          turnSpeed+= (0.025+Math.abs(speed*2))*(gyro.eff/100)
 				}
@@ -1404,15 +1443,15 @@ ctx.fillRect((w/2)+(Math.sin((prevDir))*20)-5,(h/2)+(Math.cos((prevDir))*20)-5,1
 				if (ed) { strafeSpeed-=systems.sideThrust.eff/20000}
 				
 				//handle strafing speeds or something idk man
-				sx=sx+(Math.sin(((trueTurn*-1)+90) * Math.PI/180))*strafeSpeed
-            sy=sy+(Math.cos(((trueTurn*-1)+90) * Math.PI/180))*strafeSpeed
+				drone.sx=drone.sx+(Math.sin(((trueTurn*-1)+90) * Math.PI/180))*strafeSpeed
+            drone.sy=drone.sy+(Math.cos(((trueTurn*-1)+90) * Math.PI/180))*strafeSpeed
 								
 				
 								
 
 					   if (ad) {
 						             							if(pmode){
-							sx-=0.001
+							drone.sx-=0.001
 							}else{
              turnSpeed -= (0.025+Math.abs(speed*2))*(gyro.eff/100)
 				 }
@@ -1422,14 +1461,14 @@ ctx.fillRect((w/2)+(Math.sin((prevDir))*20)-5,(h/2)+(Math.cos((prevDir))*20)-5,1
 //					  }
 				 		   if (wd) {
               							if(pmode){
-							sy-=0.001
+							drone.sy-=0.001
 							}else{
            commandedSpeed=commandedSpeed+0.00085
 			  }
 				}
 							if (sd) {
 							if(pmode){
-							sy+=0.001
+							drone.sy+=0.001
 							}else{
            commandedSpeed=commandedSpeed-0.00085
 			  }
@@ -1455,12 +1494,13 @@ turnSpeed=turnSpeed/(1+(0.1*(gyro.eff/100)))
 			 	 speed=speed/1.1
 				 commandedSpeed=commandedSpeed/1.1
 				 trueTurn = wrapAngle(drone.t)
-sx=sx+ (Math.sin((trueTurn*-1) * Math.PI/180)*(speed)/1)
-sy=sy+  (Math.cos((trueTurn*-1) * Math.PI/180)*(speed)/1)
+drone.sx=drone.sx+ (Math.sin((trueTurn*-1) * Math.PI/180)*(speed)/1)
+drone.sy=drone.sy+  (Math.cos((trueTurn*-1) * Math.PI/180)*(speed)/1)
 }
 drone.t += turnSpeed
-drone.x += sx
-drone.y += sy
+
+drone.x += drone.sx
+drone.y += drone.sy
 
 				
 				//offsets=movedir(0,0,trueTurn,speed*100) 
@@ -1540,7 +1580,7 @@ offsets=[0,0]
 			collided=false
 			}
 			
-			speedDiff=Math.abs((sx-osx)+(sy-osy))
+			speedDiff=Math.abs((drone.sx-osx)+(drone.sy-osy))
 			}
         tick()
 		  
@@ -1575,13 +1615,13 @@ youAreDie=true
 
 }
 
-if(sbdown&&laser.cd<0){
+if(sbdown&&laser.cd<0&&laser.eff>20){
 laser.cd=laser.settings[0].val
 player.fired=true
 acc=random(-(1-laser.settings[0].val/150)*3,(1-laser.settings[0].val/150)*3,0)
-console.log(acc)
+
 acc2=acc*Math.PI/180
-			newLas={x:drone.x,y:drone.y,w:2,h:6,noCollide:true,sprite:laserSprite,dist:1,type:"laser",t:trueTurn+180+acc,sx:drone.sx+Math.sin(((acc+trueTurn)*-Math.PI/180))*laser.eff/5,sy:drone.sy+Math.cos(((acc+trueTurn)*-Math.PI/180))*laser.eff/5,r:15,visible:true,mass:2,dmg:laser.eff/25,life:50,hit:false}
+			newLas={x:drone.x,y:drone.y,w:2,h:6,noCollide:true,sprite:laserSprite,dist:1,type:"laser",t:trueTurn+180+acc,sx:drone.sx+Math.sin(((acc+trueTurn)*-Math.PI/180))*laser.eff/5,sy:drone.sy+Math.cos(((acc+trueTurn)*-Math.PI/180))*laser.eff/5,r:15,visible:true,mass:2,dmg:laser.eff/50-(laser.rate/150)*25,life:50,hit:false}
 			entities.push(newLas)}
 			
 player.air-=0.02+cockpit.dam/1000
@@ -1650,8 +1690,8 @@ fuel-=(heat+fuelTank.dam)/100
 if ( fuel<1||fuelTank.missing ) {engine.eff=0;engine.menuStats.innerText="Out of fuel!"}
 //cpsg-=(engine.eff+((1000-power))/10)
 //+Math.sin((gt/100)+random(-1,1))*2
-}else {curr.eff=Math.max(((100-curr.dam)/100)*(power/10),0)}
-if (!curr.on||curr.missing){curr.eff=0} else {cpsg+=curr.pwrUsg*(curr.eff/1)}
+}else {if (!curr.on||curr.missing){curr.eff=0} else {if (!curr==engine){curr.eff=Math.max(((100-curr.dam)/100)*(power/10),0);cpsg+=curr.pwrUsg*(curr.eff/1);}}}
+
 
  if (computer.eff!==0) {
  systems[i2].menuStats.innerText= String(Math.floor(systems[i2].heat))+"C; Eff: "+ String(Math.floor(systems[i2].eff))+"%; "+"enabled: "+String(systems[i2].on)
@@ -1687,6 +1727,7 @@ systems[i2].heat+=(20-systems[i2].heat)/10000
 }
 
 //console.log(systems[i].heat)
+
 } else {curr.eff=0; curr.menuStats.innerText= String("Missing!")}
  }
 power=Math.max(Math.min((power-((cpsg/1000))),1000),0)
@@ -1701,48 +1742,62 @@ powerMeter.innerText=String(Math.round(power/10))+"%; "+String(Math.round(-cpsg)
 
 
  function collisionFollowThrough(victim,curr,embSelect,extMultiBall,selectedBall) {
+ if(!embSelect){embSelect={x:0,y:0,r:0}}
 if (curr.type=="explosion"){
 //oh thats a bomb..
+embSelect={x:0,y:0,r:0}
 giveDamage(curr.dmg,3)
-aDir=pointAt(curr.x,curr.y,drone.x,drone.y)+Math.PI*-1
+aDir=pointAt(curr.x,curr.y,victim.x,victim.y)+Math.PI*-1
 newMss=movedir(0,0,aDir,1)
 //console.log(movedir(0,0,aDir,1))
-sx+=newMss.x/30
-sy+=newMss.y/30
+victim.sx+=newMss.x/30
+victim.sy+=newMss.y/30
 entities.splice(i,1)
 //drone.x=curr.x+(Math.sin((aDir)))*(curr.r/2)
 //drone.y=curr.y+(Math.cos((aDir)))*(curr.r/2)
 } else {
 colliding=true
-calX=curr.x+embSelect.x
-calY=curr.y+embSelect.y
-calR=curr.r
-if(extMultiBall){calR=embSelect.r}
+calX=curr.x
+calY=curr.y
+calR=((curr.r/2)+(victim.r/2))
+if (extMultiBall){
+calX=embSelect.x
+calY=embSelect.y
+calR=((embSelect.r/2)+(victim.r/2))
+}
+
+calObj={x:curr.x,y:curr.y,r:((curr.r/2)+(victim.r/2))}
+
 
 aDir=pointAt(calX,calY,victim.x,victim.y)+Math.PI*-1
 rDir=pointAt(calX,calY,victim.x,victim.y)
 prevDir=aDir
 // do you know how fast you were going back there?
-relativeSpeed = getDist(curr.sx,curr.sy,drone.sx,drone.sy)*2
-realRelativeSpeed = getDist(curr.sx,curr.sy,drone.sx,drone.sy)
+relativeSpeed = getDist(curr.sx,curr.sy,victim.sx,victim.sy)*2
+realRelativeSpeed = getDist(curr.sx,curr.sy,victim.sx,victim.sy)
 
+if(victim==drone){console.log(relativeSpeed)}
 
-
-if(realRelativeSpeed>0.2&&!collided){
+if(victim==drone&&realRelativeSpeed>0.2&&!collided){
 giveDamage(relativeSpeed*10,Math.ceil(relativeSpeed))
 // this will not do anything unless we are actively in the middle of dying.
 
 
 }
 collided=true
-victim.x=calX+(Math.sin((aDir)))*(calR/2)
-victim.y=calY+(Math.cos((aDir)))*(calR/2)
+
+victim.x=calX+(Math.sin((aDir)))*calR
+victim.y=calY+(Math.cos((aDir)))*calR
+
+
 //-drone.r/4
-sx-=(sx-curr.sx)/25
-sy-=(sy-curr.sy)/25
+combinedMass=(victim.mass+curr.mass) //calibrated for the velocity transfer calculations
+victim.sx-=(victim.sx-curr.sx)/100/combinedMass*curr.mass*2
+victim.sy-=(victim.sy-curr.sy)/100/combinedMass*curr.mass*2
+//was 25 so make the drone mass amount to 2.5
 //the fuck you mean 'my turn'?
-curr.sx+=((Math.sin((rDir)))*relativeSpeed)/(100*curr.mass)
-curr.sy+=((Math.cos((rDir)))*relativeSpeed)/(100*curr.mass)
+curr.sx+=((Math.sin((rDir)))*relativeSpeed)/100/combinedMass*victim.mass*2
+curr.sy+=((Math.cos((rDir)))*relativeSpeed)/100/combinedMass*victim.mass*2
 
 //sx=+((Math.sin((aDir)))*relativeSpeed)/1000
 //sy=+((Math.cos((aDir)))*relativeSpeed)/1000
@@ -1754,13 +1809,13 @@ turnDisruption=+(((Math.sin(aDir)-0.5)*2)+((Math.cos(aDir)-0.5)*-2))/10
 //turnSpeed+=turnDisruption
 //console.log(aDir,sx)
 
-cDir=pointAt(curr.x,curr.y,drone.x,drone.y)
-console.log(cDir)
+cDir=pointAt(curr.x,curr.y,victim.x,victim.y)
+
 //docking
 player.dCool = Math.max(player.dCool-1,0)
 if (selectedBall==3&&curr.type=="station"&&extMultiBall&&player.dCool==0) {
-sx = curr.sx
-sy = curr.sy
+drone.sx = curr.sx
+drone.sy = curr.sy
 settings.hardPaused=true
 player.docked=true
 stationUI.hidden=false
@@ -1774,7 +1829,8 @@ pushConMsg("WELCOME, PILOT. PLEASE TYPE 'help' IN THE CONSOLE FOR ASSISTANCE")
 }
  }
 function renderEnt(curr) {
-if ((Math.abs(pointAt(curr.x,curr.y,drone.x,drone.y)-trueTurn*-Math.PI/180))<(player.visionRadius)*Math.PI/180||curr.dist>1||getDist(drone.x,drone.y,curr.x,curr.y)<7+curr.r) {
+
+if (getDist(drone.x,drone.y,curr.x,curr.y)<(zoom/10)) {
 				curr.vFade=Math.max(0,curr.vFade-0.05)
 				
 
