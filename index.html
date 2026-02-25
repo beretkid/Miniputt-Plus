@@ -181,7 +181,7 @@ var heat=1
 var fuel = 10000
 const cOff=2
 //start at 10000
-const settings={runOutOfView:true,renderDist:w*h,cameraChase:true,paused:false,hardPaused:false,drawFOV:false,lightFalloff:4,conSize:1.5,gameSpeed:10,screenDarkness:50,notifEnabled:true,astroidsCollide:true,lazySV:false};
+const settings={generateField:true,runOutOfView:true,renderDist:w*h,cameraChase:true,paused:false,hardPaused:false,drawFOV:false,lightFalloff:4,conSize:1.5,gameSpeed:10,screenDarkness:50,notifEnabled:true,astroidsCollide:true,lazySV:false};
 var rkp = false
 var zd = false
 var spin = 0
@@ -316,11 +316,12 @@ player.dCool=125
 if (txt=="warp"){
 for (i9 in entities) {
 if(entities[i]!==station){
-entities.splice(i9,1)
+entities.splice(1,entities.length-1)
 
 
 }
 }
+regenField(5000,Number(arg1))
 }
 
 if (txt=="store"){
@@ -735,8 +736,8 @@ const fighterDroneTemplate={x:0,y:0,w:22,h:22,sprite:fighterSprite,dist:1,type:"
 
 
 
-generateField=true
-if(generateField) {
+
+if(settings.generateField) {
 regenField(5000,random(1000000,9999999))
 }
 
