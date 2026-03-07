@@ -357,7 +357,7 @@ mprg.addEventListener('click', (evnt) => {
 console.log(mpid.value)
 mp= peer.connect("MPUTTPLUS-"+String(mpid.value));
 heartstop=true
-mp.on('open', function(datcon2) {mpClientTick();console.log("AHGHHHHHHH (Connected!)")
+mp.on('open', function(datcon2) {mpClientTick();console.log("V")
 
 });
 
@@ -2296,7 +2296,7 @@ offsets=[0,0]
 			
 			if(settings.canvReady){
 			
-			datcon.send(entities)
+			
 			}
         tick()
 		  }
