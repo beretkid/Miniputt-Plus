@@ -345,24 +345,32 @@ peer.on("open", function (id) {
   plrID.innerHTML="ID: "+String(id).replace("MPUTTPLUS-", "");
 	mpReady=true
 
+peer.on('error', function(err) {console.log(err)});
+mprg.addEventListener('click', (evnt) => {
 
+mp= peer.connect("MPUTTPLUS-"+String(mpid.value));
+mp.on('error', function(err) {console.log(err)})
+mp.on('open', function(mp) {
+heartstop=true
+console.log("AHGHHHHHHH (Connected!)")
+mpClientTick();
+
+
+
+});
+
+})
 });
 
 //almost named this 'mpreg' short for multiplayer register 
 var mprg = document.getElementById("mprg")
 
 var mpid = document.getElementById("mpid")
+
+
+
 var MPconnected=false
-mprg.addEventListener('click', (evnt) => {
-console.log(mpid.value)
-mp= peer.connect("MPUTTPLUS-"+String(mpid.value));
 
-mp.on('open', function(datcon2) {mpClientTick();console.log("AHGHHHHHHH (Connected!)")
-heartstop=true
-mpClientTick()
-});
-
-})
 }
 var heartstop=false
 
@@ -2595,10 +2603,7 @@ MData={keys:[{code:68,pressed:false}]}
 //data to send
 peer.on('connection', function(dataConnection) {
 	console.log("Connected to",dataConnection)
-	dataConnection.on('open', function(dataConnection) {
 	settings.canvReady=true
-
-	datcon=dataConnection
 		dataConnection.on('data', function(data) {
 		MData=data
 		for (i in MData.keys){
@@ -2614,8 +2619,7 @@ keyD(MData.keys[i])
 //console.log("OH god i have to actualy do my job", data)
 });
 });
-});
-var datcon
+
 var DTS={keys:[{code:68,pressed:false}]}
 function mpClientTick() {
 
