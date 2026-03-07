@@ -356,8 +356,8 @@ mprg.addEventListener('click', (evnt) => {
 console.log(mpid.value)
 mp= peer.connect(String(mpid.value));
 heartstop=true
-mp.on('open', function() {mpClientTick();console.log("AHGHHHHHHH (Connected!)")
-mp.on('data', function(data) {console.log(data)})
+mp.on('open', function(datcon2) {mpClientTick();console.log("AHGHHHHHHH (Connected!)")
+datcon2.on('data', function(data) {console.log(data)})
 });
 
 })
@@ -1456,17 +1456,18 @@ mpid.addEventListener('focus', () => {player.typing=true})
 		  if (kc == 17) {
 			CtrlDown=true
 		  }
-		  		  		  		  	if (kc == 84) {
+		  		  		  		  	
+		  if (!player.typing&&!CtrlDown) {
+		  		  	if (kc == 191) {
+			inTerm("undock")
+		  }
+		  if (kc == 84) {
 
 			
 			setTimeout(() => { 
 		typing=true
 			scIn.focus()
 			},1)
-		  }
-		  if (!player.typing&&!CtrlDown) {
-		  		  	if (kc == 191) {
-			inTerm("undock")
 		  }
 		  	if (kc == 86) {
 
@@ -2294,7 +2295,7 @@ offsets=[0,0]
 			
 			if(settings.canvReady){
 			
-			datcon.send(ctx.getImageData(0,0,w,h))
+			datcon.send(canvas.toDataURL())
 			}
         tick()
 		  }
@@ -2592,7 +2593,7 @@ MData={keys:[{code:68,pressed:false}]}
 //data to send
 peer.on('connection', function(dataConnection) {
 	console.log("Connected to",dataConnection)
-	dataConnection.on('open', function(data) {
+	dataConnection.on('open', function(dataConnection) {
 	settings.canvReady=true
 
 	datcon=dataConnection
