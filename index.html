@@ -2,10 +2,11 @@
 
 <html>
 <head>
-<style>
-/* Add basic CSS styles if needed, e.g., to position the divs correctly */
-</style>
-</head>
+<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-eval' https://unpkg.com 'unsafe-inline';">
+
+
+
+
 <body>
 
 <div style="position:absolute; width:520px; height:64px; top:50%;left:50%;display: flex;z-index:8;overflow:auto;color:#c9a100;"  id="messageBox" ></div>
@@ -357,7 +358,7 @@ console.log(mpid.value)
 mp= peer.connect("MPUTTPLUS-"+String(mpid.value));
 heartstop=true
 mp.on('open', function(datcon2) {mpClientTick();console.log("AHGHHHHHHH (Connected!)")
-datcon2.on('data', function(data) {})
+datcon2.on('data', function(data) {ctx.clearRect(0,0,w,h);for (i2 in data){renderEnt(entities[i2])}})
 });
 
 })
@@ -2661,4 +2662,5 @@ tick();
 </script>
 
 </body>
+</head>
 </html>
