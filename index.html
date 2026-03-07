@@ -249,7 +249,7 @@ var heat=1
 var fuel = 10000
 const cOff=2
 //start at 10000
-const settings={generateField:true,runOutOfView:true,renderDist:w*h,cameraChase:true,paused:false,hardPaused:false,drawFOV:false,lightFalloff:4,conSize:1.5,gameSpeed:10,screenDarkness:50,notifEnabled:true,astroidsCollide:true,lazySV:false,freindlyDrones:false,lasersHurt:true,sharpShooterDrones:false,aimLaser:false,showTD:true,slowLag:true,indClean:false,hivisLasers:true,multiplayer:true};
+const settings={generateField:true,runOutOfView:true,renderDist:w*h,cameraChase:true,paused:false,hardPaused:false,drawFOV:false,lightFalloff:4,conSize:1.5,gameSpeed:10,screenDarkness:50,notifEnabled:true,astroidsCollide:true,lazySV:false,freindlyDrones:false,lasersHurt:true,sharpShooterDrones:false,aimLaser:false,showTD:true,slowLag:false,indClean:false,hivisLasers:true,multiplayer:true,canvready:false};
 var rkp = false
 var zd = false
 var spin = 0
@@ -276,6 +276,7 @@ var sizeoff=1
 var oy2 = 0
 var youAreDie=false
 var cc = gFree
+var CtrlDown = false
 var sbdown=false
 var boxTop = document.getElementById("BoxTop")
 var boxSide = document.getElementById("BoxSide")
@@ -342,11 +343,8 @@ peer.on("open", function (id) {
   console.log("My peer ID is: " + id);
   plrID.innerHTML="ID: "+String(id)
 	mpReady=true
-	peer.on('connection', function(dataConnection) {
-dataConnection.on('data', function(data) {MData=data
-console.log("OH god i have to actualy do my job", data)
-});
-})
+
+
 });
 
 //almost named this 'mpreg' short for multiplayer register 
@@ -358,7 +356,9 @@ mprg.addEventListener('click', (evnt) => {
 console.log(mpid.value)
 mp= peer.connect(String(mpid.value));
 heartstop=true
-mp.on('open', function() {mpClientTick();console.log("AHGHHHHHHH (Connected!)")});
+mp.on('open', function() {mpClientTick();console.log("AHGHHHHHHH (Connected!)")
+mp.on('data', function(data) {console.log(data)})
+});
 
 })
 }
@@ -1355,8 +1355,14 @@ py=s1.y
   return false;
 }
 }
- document.addEventListener('keyup', function(event) {
+ function keyU(event) {
+ if (event.keyCode){
  kc = event.keyCode
+ }else{kc=event.code}
+ 
+ 		  if (kc == 17) {
+			CtrlDown=false
+		  }
  if (kc == 68) {
 
 			dd=false
@@ -1424,16 +1430,18 @@ py=s1.y
 	
 			
 		  }
- })
+ }
 scIn.addEventListener('blur', () => {player.typing=false})
 scIn.addEventListener('focus', () => {player.typing=true})
 mpid.addEventListener('blur', () => {player.typing=false})
 mpid.addEventListener('focus', () => {player.typing=true})
-    document.addEventListener('keydown', function(event) {
+    function keyD(event) {
 	 if(!interacted) {document.getElementById("logo").hidden=true;}
 		interacted=true
 		timeSinceLastInput=0
-       kc = event.keyCode
+        if (event.keyCode){
+ kc = event.keyCode
+ }else{kc=event.code}
 		  console.log(kc)
 		  		  	if (kc == 13) {
 
@@ -1445,6 +1453,9 @@ mpid.addEventListener('focus', () => {player.typing=true})
 			}else{scIn.blur()}
 			
 		  }
+		  if (kc == 17) {
+			CtrlDown=true
+		  }
 		  		  		  		  	if (kc == 84) {
 
 			
@@ -1453,7 +1464,7 @@ mpid.addEventListener('focus', () => {player.typing=true})
 			scIn.focus()
 			},1)
 		  }
-		  if (!player.typing) {
+		  if (!player.typing&&!CtrlDown) {
 		  		  	if (kc == 191) {
 			inTerm("undock")
 		  }
@@ -1463,7 +1474,7 @@ menuHolder.hidden = !menuHolder.hidden
 
 		  }
 		  }
-		  if (!settings.hardPaused&&!player.typing) {
+		  if (!settings.hardPaused&&!player.typing&&!CtrlDown) {
 		  		  	if (kc == 68) {
 
 			dd=true
@@ -1588,10 +1599,15 @@ adaptWindow()
 }
 			
 		  //try using list like mathematical thingys to sort distances
-    });
+    }
+	 document.addEventListener('keydown',keyD)
+    document.addEventListener('keyup',keyU)
+	 pushMsg("This is the chatBox.")
+    
 	 
 
-	 pushMsg("This is the chatBox.")
+
+	 
 function tick() {
 player.fired=false
 sx=drone.sx
@@ -1600,10 +1616,6 @@ drone.lx=drone.x
 drone.ly=drone.y
 
 
-if (MData.dd){dd=true}
-if (MData.ad){ad=true}
-if (MData.sd){sd=true}
-if (MData.wd){wd=true}
 //Instead of skipping rendering, slow the game down.
 if (settings.slowLag){
 if (tickDelay>7){
@@ -2279,6 +2291,11 @@ offsets=[0,0]
 			pushMsg(tickDelay)
 			}
 			if(!heartstop){
+			
+			if(settings.canvReady){
+			
+			datcon.send(ctx.getImageData(0,0,w,h))
+			}
         tick()
 		  }
     }, settings.gameSpeed);
@@ -2570,16 +2587,45 @@ if (getDist(drone.x,drone.y,curr.x,curr.y)<(zoom/10)) {
 				}
 				}
 }
-MData={dd:false,ad:false,wd:false,sd:false}
+MData={keys:[{code:68,pressed:false}]}
 
 //data to send
-var DTS={dd:false,ad:false,wd:false,sd:false}
+peer.on('connection', function(dataConnection) {
+	console.log("Connected to",dataConnection)
+	dataConnection.on('open', function(data) {
+	settings.canvReady=true
+
+	datcon=dataConnection
+		dataConnection.on('data', function(data) {
+		MData=data
+		for (i in MData.keys){
+		
+		if(MData.keys[i].pressed){
+		
+keyD(MData.keys[i])
+		}else{keyU(MData.keys[i])}
+		
+		}
+		
+		
+//console.log("OH god i have to actualy do my job", data)
+});
+});
+});
+var datcon
+var DTS={keys:[{code:68,pressed:false}]}
 function mpClientTick() {
-if (DTS!=={dd:dd,ad:ad,sd:sd,wd:wd})
-DTS={dd:dd,ad:ad,sd:sd,wd:wd}
-console.log(DTS)
+
+var lastDTS=DTS
+
+DTS={keys:[{code:68,pressed:dd},{code:65,pressed:ad},{code:87,pressed:wd},{code:83,pressed:sd},{code:81,pressed:qd},{code:69,pressed:ed},{code:32,pressed:sbdown}]}
+mismatch=false
+
+
+
+console.log(DTS,dd)
 mp.send(DTS);
-}
+
 setTimeout(()=>{
 mpClientTick()
 },10)
