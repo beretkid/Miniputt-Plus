@@ -341,7 +341,7 @@ if (settings.multiplayer) {
 var peer = new Peer("MPUTTPLUS-"+random(1000,9999)+"-"+random(1000,9999));
 peer.on("open", function (id) {
   console.log("My peer ID is: " + id);
-  plrID.innerHTML="ID: "+String(id)
+  plrID.innerHTML="ID: "+String(id).replace("MPUTTPLUS-", "");
 	mpReady=true
 
 
@@ -354,10 +354,10 @@ var mpid = document.getElementById("mpid")
 var MPconnected=false
 mprg.addEventListener('click', (evnt) => {
 console.log(mpid.value)
-mp= peer.connect(String(mpid.value));
+mp= peer.connect("MPUTTPLUS-"+String(mpid.value));
 heartstop=true
 mp.on('open', function(datcon2) {mpClientTick();console.log("AHGHHHHHHH (Connected!)")
-datcon2.on('data', function(data) {console.log(data)})
+datcon2.on('data', function(data) {for (i2 in data) {renderEnt(data[i2])};ctx.clearRect(0,0,w,h)})
 });
 
 })
@@ -2295,7 +2295,7 @@ offsets=[0,0]
 			
 			if(settings.canvReady){
 			
-			datcon.send(canvas.toDataURL())
+			datcon.send(entities)
 			}
         tick()
 		  }
