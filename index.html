@@ -356,9 +356,10 @@ var MPconnected=false
 mprg.addEventListener('click', (evnt) => {
 console.log(mpid.value)
 mp= peer.connect("MPUTTPLUS-"+String(mpid.value));
-heartstop=true
-mp.on('open', function(datcon2) {mpClientTick();console.log("V")
 
+mp.on('open', function(datcon2) {mpClientTick();console.log("AHGHHHHHHH (Connected!)")
+heartstop=true
+mpClientTick()
 });
 
 })
@@ -2626,8 +2627,9 @@ mismatch=false
 
 
 console.log(DTS,dd)
+if(mpReady){
 mp.send(DTS);
-
+}
 setTimeout(()=>{
 mpClientTick()
 },10)
