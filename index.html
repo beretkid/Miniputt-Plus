@@ -335,6 +335,7 @@ var dying=false
 var sx=0
 var sy=0
 var mpReady=false
+var mpcReady=false
 //register yourself to da web
 plrID=document.getElementById("MPplrID")
 if (settings.multiplayer) {
@@ -350,12 +351,12 @@ mprg.addEventListener('click', (evnt) => {
 
 mp= peer.connect("MPUTTPLUS-"+String(mpid.value));
 mp.on('error', function(err) {console.log(err)})
-mp.on('open', function(mp) {
+mp.on('open', function(mp2) {
 heartstop=true
+
 console.log("AHGHHHHHHH (Connected!)")
+mpcReady=true
 mpClientTick();
-
-
 
 });
 
@@ -568,10 +569,13 @@ entities.push({x:x,y:y,w:randSize,h:randSize,sprite:sprite,dist:1,type:"debris",
 
 function inTerm(rawtxt) {
 //parse the text
+if(mpcReady){
+con = rawtxt
+console.log("sending msg..")
+}else{
 halfmadeTxt=rawtxt.replaceAll("@","@ ").replaceAll("^","^ ").replaceAll("/","/ ").replaceAll("$","$ ")
 
 pushConMsg(">>"+rawtxt)
-
 
 halfmadeTxt=halfmadeTxt.toLowerCase().split(' ')
 console.log(halfmadeTxt)
@@ -878,7 +882,7 @@ if ( player.credits < 3 ) {pushConMsg("BROKE MF ALERT!! BROKE MF ALERT!!")}
 
 }
 }
-}
+}}
 function resetSys(sys) {
 theThing={engine:{dam:0,on:true,des:"Type 1 Engine",heat:0,eff:100,maxHeat:500,insulation:10,pwrUsg:-250,minHeat:-100,missing:false,dmgRes:10,baseUsg:-250,settings:[{des:"flow",val:50,default:50,min:0,max:150}]},cooling:{dam:0,on:true,des:"Cooling System",heat:20,eff:100,maxHeat:150,insulation:0,pwrUsg:50,minHeat:-100,missing:false,dmgRes:1},tank:{dam:0,on:true,des:"Plasma Tank",heat:20,eff:100,maxHeat:125,insulation:0,pwrUsg:0,minHeat:-100,missing:false,baseUsg:0,settings:[],dmgRes:1},gyroscope:{dam:0,on:true,des:"PuttTech Type 3 Gyroscope",heat:20,eff:100,maxHeat:200,insulation:0,pwrUsg:35,minHeat:-100,missing:false,dmgRes:7,baseUsg:35,settings:[{des:"speed",val:50,default:50,min:0,max:150}]},sideThrust:{dam:0,on:true,des:"Side Thrusters",heat:20,eff:100,maxHeat:1000,baseUsg:25,settings:[{des:"flow",val:50,default:50,min:0,max:150}],insulation:10,pwrUsg:25,minHeat:-100,missing:false,dmgRes:1},thruster:{dam:0,on:true,des:"Main Thrusters",heat:20,eff:100,maxHeat:1000,insulation:10,baseUsg:15,settings:[{des:"flow",val:50,default:50,min:0,max:150}],pwrUsg:50,minHeat:-100,missing:false,dmgRes:1},shipComputer:{dam:0,on:true,des:"Ship Computer",heat:0,eff:100,maxHeat:125,insulation:5,pwrUsg:15,minHeat:-200,baseUsg:15,settings:[],missing:false,dmgRes:1},cockpit:{dam:0,on:true,des:"Cockpit",heat:20,eff:100,maxHeat:80,baseUsg:15,settings:[{des:"lifesupport",val:50,min:0,max:150,default:50}],insulation:5,pwrUsg:15,minHeat:-200,missing:false,dmgRes:1},laser:{dam:0,on:true,des:"Mk1 Scout laser",heat:20,eff:100,maxHeat:135,baseUsg:25,insulation:5,pwrUsg:25,minHeat:-200,missing:false,dmgRes:3,cd:0,settings:[{des:"rate",val:50,min:0,max:150,default:50}]},armor:{dam:0,on:true,des:"Armor Plating",heat:20,eff:100,maxHeat:305,insulation:0,pwrUsg:0,minHeat:-100,missing:false,baseUsg:0,settings:[],dmgRes:8}}
 for (i in theThing) {
@@ -943,7 +947,9 @@ msgBox.innerHTML=msg
 
 timeSinceLastMsg=0;
 }
+var con = ""
 function pushConMsg(msg) {
+outcon.push(msg)
 newMsg = document.createElement('div');
 newMsg.innerHTML=msg
 newMsg.style.top = `${cMsgDown}px`
@@ -1616,7 +1622,7 @@ adaptWindow()
 	 pushMsg("This is the chatBox.")
     
 	 
-
+var outcon=[]
 
 	 
 function tick() {
@@ -1625,7 +1631,10 @@ sx=drone.sx
 sy=drone.sy
 drone.lx=drone.x
 drone.ly=drone.y
+if (settings.canvReady) {
 
+datcon.send({con:outcon});
+}
 
 //Instead of skipping rendering, slow the game down.
 if (settings.slowLag){
@@ -2307,6 +2316,8 @@ offsets=[0,0]
 			
 			
 			}
+			//reset outcon
+			outcon.splice(0,outcon.length)
         tick()
 		  }
     }, settings.gameSpeed);
@@ -2603,38 +2614,55 @@ MData={keys:[{code:68,pressed:false}]}
 //data to send
 peer.on('connection', function(dataConnection) {
 	console.log("Connected to",dataConnection)
+	
+	datcon=dataConnection
 	settings.canvReady=true
+	
 		dataConnection.on('data', function(data) {
+		//handle incoming data from co-pilot
 		MData=data
-		for (i in MData.keys){
 		
-		if(MData.keys[i].pressed){
+		if(String(MData.con)) {
+		console.log(MData.con)
+		pushConMsg("COPLT:")
 		
-keyD(MData.keys[i])
-		}else{keyU(MData.keys[i])}
-		
+		inTerm(String(MData.con.toLowerCase()))
 		}
+		//re-enable in a bit
+//		for (i in MData.keys){
+		
+//		if(MData.keys[i].pressed){
+		
+//keyD(MData.keys[i])
+//		}else{keyU(MData.keys[i])}
+		
+		//}
 		
 		
 //console.log("OH god i have to actualy do my job", data)
 });
 });
-
+//co-pilot tick
 var DTS={keys:[{code:68,pressed:false}]}
 function mpClientTick() {
 
 var lastDTS=DTS
 
-DTS={keys:[{code:68,pressed:dd},{code:65,pressed:ad},{code:87,pressed:wd},{code:83,pressed:sd},{code:81,pressed:qd},{code:69,pressed:ed},{code:32,pressed:sbdown}]}
+DTS={keys:[{code:68,pressed:dd},{code:65,pressed:ad},{code:87,pressed:wd},{code:83,pressed:sd},{code:81,pressed:qd},{code:69,pressed:ed},{code:32,pressed:sbdown}],con:con}
 mismatch=false
 
 
 
-console.log(DTS,dd)
-if(mpReady){
+
+if(mpcReady){
 mp.send(DTS);
+
+if (con!==""){
+con=''
+}
 }
 setTimeout(()=>{
+
 mpClientTick()
 },10)
 }
