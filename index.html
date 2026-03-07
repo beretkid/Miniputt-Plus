@@ -357,7 +357,7 @@ console.log(mpid.value)
 mp= peer.connect("MPUTTPLUS-"+String(mpid.value));
 heartstop=true
 mp.on('open', function(datcon2) {mpClientTick();console.log("AHGHHHHHHH (Connected!)")
-datcon2.on('data', function(data) {for (i2 in data) {renderEnt(data[i2])};ctx.clearRect(0,0,w,h)})
+datcon2.on('data', function(data) {})
 });
 
 })
