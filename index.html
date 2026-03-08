@@ -250,7 +250,7 @@ var heat=1
 var fuel = 10000
 const cOff=2
 //start at 10000
-const settings={generateField:true,runOutOfView:true,renderDist:w*h,cameraChase:true,paused:false,hardPaused:false,drawFOV:false,lightFalloff:4,conSize:1.5,gameSpeed:10,screenDarkness:50,notifEnabled:true,astroidsCollide:true,lazySV:false,freindlyDrones:false,lasersHurt:true,sharpShooterDrones:false,aimLaser:false,showTD:true,slowLag:false,indClean:false,hivisLasers:true,multiplayer:true,canvready:false};
+const settings={generateField:true,runOutOfView:true,renderDist:w*h,cameraChase:true,paused:false,hardPaused:false,drawFOV:false,lightFalloff:4,conSize:1.5,gameSpeed:10,screenDarkness:50,notifEnabled:true,astroidsCollide:true,lazySV:false,freindlyDrones:false,lasersHurt:true,sharpShooterDrones:false,aimLaser:false,showTD:false,slowLag:false,indClean:false,hivisLasers:true,multiplayer:true,canvready:false};
 var rkp = false
 var zd = false
 var spin = 0
@@ -298,7 +298,7 @@ var cwidth=canvas.innerWidth
 var cheight=canvas.innerHeight
 var curr2
 
-var player = {hp:100,air:100,repairCharges:8,dizzy:0,cameraThrow:0,cameraThrowX:0,cameraThrowY:0,droneKills:0,credits:1000,jobs:[],driving:true,visionRadius:45,docked:false,dCool:0,typing:false,dockedStation:null,upgrades:{controlPanel:{installed:true,cost:500,des:"Ctrl_panel"}},inCrisis:false,astroidKills:0,fired:false,pendingWarnings:[],speed:0.00105,living:Date.now()}
+var player = {hp:100,air:100,repairCharges:8,dizzy:0,cameraThrow:0,cameraThrowX:0,cameraThrowY:0,cCon:false,droneKills:0,credits:1000,jobs:[],driving:true,visionRadius:45,docked:false,dCool:0,typing:false,dockedStation:null,upgrades:{controlPanel:{installed:true,cost:500,des:"Ctrl_panel"}},inCrisis:false,astroidKills:0,fired:false,pendingWarnings:[],speed:0.00105,living:Date.now()}
 var xo
 var drone = {x:50,y:0,t:0,w:32,h:32,r:0,hp:100,sx:0,sy:0,r:0,mass:1}
 var turnSpeed=0
@@ -336,6 +336,23 @@ var sx=0
 var sy=0
 var mpReady=false
 var mpcReady=false
+//controller support
+window.addEventListener("gamepaddisconnected", (controller) => {
+newGamepad(controller)
+});
+window.addEventListener("gamepadconnected", (controller) => {
+newGamepad(controller)
+});
+
+function newGamepad (c) {
+player.cCon=true
+
+console.log(c)
+
+}
+
+
+
 //register yourself to da web
 plrID=document.getElementById("MPplrID")
 if (settings.multiplayer) {
@@ -1626,11 +1643,27 @@ var outcon=[]
 
 	 
 function tick() {
+
+
+
 player.fired=false
 sx=drone.sx
 sy=drone.sy
 drone.lx=drone.x
 drone.ly=drone.y
+
+if (player.cCon){player.controller=navigator.getGamepads()[0];
+	console.log(player.controller)
+for (i in player.controller.buttons) {
+
+if (player.controller.buttons[i].pressed) {pushMsg("ID:"+i+"VALUE:"+player.controller.buttons[i].value)}
+
+}
+
+}
+
+
+
 if (settings.canvReady) {
 
 datcon.send({con:outcon});
@@ -2159,6 +2192,24 @@ ctx.fillRect((w/2)+(Math.sin((prevDir))*20)-5,(h/2)+(Math.cos((prevDir))*20)-5,1
 			  }
             ctx.save()
         if (driving) {
+											//handle controller inputs
+				if (player.cCon) {
+					player.controller=navigator.getGamepads()[0]
+					
+					//deadzone thingy
+					gamepadsx=player.controller.axes[0]
+					gamepadsy=player.controller.axes[1]
+					gamepadlx=player.controller.axes[2]
+					gamepadly=player.controller.axes[3]
+					gamepadThrottle=Math.max(gamepadly*-1,player.controller.buttons[7].value)-Math.max(gamepadly,player.controller.buttons[6].value)
+					gamepadZoom=player.controller.buttons[12].value-player.controller.buttons[13].value
+
+					zoom=Math.max(zoom*(1+gamepadZoom*0.01),0.4)
+					commandedSpeed=commandedSpeed+(player.speed*gamepadThrottle)
+					if (Math.abs(gamepadsx)>0.1){ turnSpeed+=(gamepadsx*(0.025+Math.abs(speed*2)))*(gyro.eff/100)}
+					if (Math.abs(gamepadlx)>0.1){strafeSpeed-=gamepadlx*(systems.sideThrust.eff/16000)}
+					
+				}
 		  if (dd) {
 		               							if(pmode){
 							drone.sx+=0.001
@@ -2170,6 +2221,9 @@ ctx.fillRect((w/2)+(Math.sin((prevDir))*20)-5,(h/2)+(Math.cos((prevDir))*20)-5,1
 				if (ed) { strafeSpeed-=systems.sideThrust.eff/16000}
 				
 				//handle strafing speeds or something idk man
+
+
+
 				drone.sx=drone.sx+(Math.sin(((trueTurn*-1)+90) * Math.PI/180))*strafeSpeed
             drone.sy=drone.sy+(Math.cos(((trueTurn*-1)+90) * Math.PI/180))*strafeSpeed
 								
@@ -2207,6 +2261,8 @@ sy=sy/1.01
 turnSpeed=turnSpeed/(1+(0.1*(gyro.eff/100)))
 
 				} 
+
+
 				
 				  strafeSpeed=strafeSpeed/1000
 				shipSystems()
@@ -2351,8 +2407,10 @@ if(cockpit.dam>100||cockpit.missing) {
 
 
 }
+fakeSbDown=(sbdown)
+if(player.cCon){fakeSbDown=(sbdown|| player.controller.buttons[0].value>0)}
 
-if(sbdown&&laser.cd<0&&laser.eff>20){
+if(fakeSbDown&&laser.cd<0&&laser.eff>20){
 laser.cd=laser.settings[0].val
 player.fired=true
 acc=random(-(1-laser.settings[0].val/150)*3,(1-laser.settings[0].val/150)*3,0)
