@@ -315,7 +315,12 @@ function cloneObj(obj) {
 for (i9 in obj){
 newObj[i9]=obj[i9]
 }
+if(obj==station){station=newObj
+newObj.x = 0
+newObj.y = 0
+}
 return newObj
+
 }
 function unloadEnts(keep) {
 obj=cloneObj(keep)
@@ -1232,7 +1237,7 @@ station.x=Math.sin(rDir)*rDist
 station.y=Math.cos(rDir)*rDist
 drone.x = station.x
 drone.y = station.y+ 100
-entities.push({x:0,y:0,w:1000,h:1000,sprite:p4,dist:1,type:"bigMan",sx:0,sy:0,t:0,r:10000,grav:1000,mass:100000})
+entities.push({x:0,y:0,w:1000,h:1000,sprite:p4,dist:1,type:"bigMan",sx:0,sy:0,t:0,r:9000,grav:1000,mass:100000})
 }
 
 for (let i = 0; i < dPointsAmnt; i++) {
@@ -1966,7 +1971,7 @@ if(diff<0.0001||settings.sharpShooterDrones){curr.tt=curr.targ.t}
 
 curr.thrust=0.02/Math.max(5+Math.abs(diff),1)
 
-if(diff<0.1&&random(0,25)==2&&curr.cool<0&&curr.locked&&!settings.freindlyDrones){fireLas(curr,random(-curr.acc,curr.acc,0),curr.dmg);curr.cool=curr.fireCool}
+if(diff<0.1&&random(0,25)==2&&curr.cool<0&&curr.locked&&!settings.freindlyDrones){fireLas(curr,random(-curr.acc,curr.acc,0),curr.dmg,curr.t);curr.cool=curr.fireCool}
 curr.sx+=Math.sin(curr.tt)*(curr.thrust)
 curr.sy+=Math.cos(curr.tt)*(curr.thrust)
 curr.t=curr.tt/-(Math.PI/180)
