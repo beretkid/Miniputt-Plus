@@ -298,9 +298,9 @@ var cwidth=canvas.innerWidth
 var cheight=canvas.innerHeight
 var curr2
 
-var player = {hp:100,air:100,repairCharges:8,dizzy:0,cameraThrow:0,cameraThrowX:0,cameraThrowY:0,cCon:false,droneKills:0,credits:1000,jobs:[],driving:true,visionRadius:45,docked:false,dCool:0,typing:false,dockedStation:null,upgrades:{controlPanel:{installed:true,cost:500,des:"Ctrl_panel"}},inCrisis:false,astroidKills:0,fired:false,pendingWarnings:[],speed:0.00105,living:Date.now()}
+var player = {hp:100,air:100,repairCharges:8,dizzy:0,rearCD:0,cameraThrow:0,cameraThrowX:0,cameraThrowY:0,cCon:false,droneKills:0,credits:1000,jobs:[],driving:true,visionRadius:45,docked:false,dCool:0,typing:false,dockedStation:null,upgrades:{controlPanel:{installed:true,cost:500,des:"Ctrl_panel"}},inCrisis:false,astroidKills:0,fired:false,pendingWarnings:[],speed:0.00105,living:Date.now()}
 var xo
-var drone = {x:50,y:0,t:0,w:32,h:32,r:0,hp:100,sx:0,sy:0,r:0,mass:1}
+var drone = {x:50,y:0,t:0,w:32,h:32,r:0,hp:100,sx:0,sy:0,r:0,mass:1,brakes:false}
 var turnSpeed=0
 var MenuLayout = 0
 //0=home
@@ -895,8 +895,14 @@ if ( player.credits < 3 ) {pushConMsg("BROKE MF ALERT!! BROKE MF ALERT!!")}
 }
 if (arg1=="health"||arg1=="h"||arg1=="hp"){
 pushConMsg("Pilot Vitals are: "+player.hp+"%")
-if ( player.credits < 3 ) {pushConMsg("BROKE MF ALERT!! BROKE MF ALERT!!")}
-
+}
+if (arg1=="jobs"||arg1=="j"||arg1=="jo"){
+for (i3 in player.jobs) {
+job=player.jobs[i3]
+pushConMsg("JOB"+String(i3+1)+": "+job.name)
+pushConMsg("PAY: "+job.reward+"c")
+pushConMsg("FINISHED: "+player[job.stat]+"/"+job.target)
+}
 }
 }
 }}
@@ -1074,16 +1080,35 @@ console.log("WHAT"+partSelected)
 });
 
 }
+var mouseDir = 0
 var powerSwitch=document.getElementById("powerSwitch")
 var powerMeter = document.getElementById("powerMeter")
+
 console.log(powerSwitch)
     var mouseX = 0
     var mouseY = 0
 document.addEventListener('mousemove', (event) => {
     // Get the coordinates relative to the browser viewport
-     mouseX = event.clientX
-     mouseY = event.clientY
+     mouseX = event.x
+     mouseY = event.y
+	 mouseDir = (((Math.atan2(event.clientY - h/2, event.clientX - w/2) * 180 / Math.PI)+90)+trueTurn)
 	 })
+document.addEventListener('mousedown', (event) => {
+	 mouseX = event.x
+     mouseY = event.y
+	 mouseDir = (((Math.atan2(event.clientY - h/2, event.clientX - w/2) * 180 / Math.PI)+90)+trueTurn)
+if (player.rearCD==0){
+	player.rearCD=45
+console.log(event)	
+if (event.target==canvas||event.button==0){
+	
+dir=mouseDir
+console.log(w/2,mouseX)
+console.log(dir)
+fireLas(drone,3,10,dir)
+}
+}
+})
 powerSwitch.addEventListener('click', (evnt) => {
 
 pushMsg("You toggle power to the "+ partSelected.des +".")
@@ -1165,10 +1190,10 @@ console.log(station.jobs)
 rng=Math.round(random(1,2))
 console.log(rng)
 if(rng==2){
-newJob={name:"Drone hunting",stat:"droneKills",target:player.droneKills+genSV2(2,4,seed,i*35*Math.E),reward:genSV2(600,800,seed,i*32*Math.E)}
+newJob={name:"Drone hunting",stat:"droneKills",target:player.droneKills+Math.round(genSV2(2,4,seed,i*35*Math.E)),reward:Math.round(genSV2(600,800,seed,i*32*Math.E))}
 }
 if(rng==1){
-newJob={name:"Astroid clearing",stat:"astroidKills",target:player.astroidKills+genSV2(10,20,seed,i*37*Math.E),reward:genSV2(300,600,seed,i*31*Math.E)}
+newJob={name:"Astroid clearing",stat:"astroidKills",target:player.astroidKills+Math.round(genSV2(10,20,seed,i*37*Math.E)),reward:Math.round(genSV2(300,600,seed,i*31*Math.E))}
 }
 station.jobs.push(newJob)
 }
@@ -1491,6 +1516,10 @@ mpid.addEventListener('focus', () => {player.typing=true})
 		  }
 		  		  		  		  	
 		  if (!player.typing&&!CtrlDown) {
+			if(kc==66) {
+
+			drone.brakes=!drone.brakes
+			}
 		  		  	if (kc == 191) {
 			inTerm("undock")
 		  }
@@ -1645,7 +1674,7 @@ var outcon=[]
 function tick() {
 
 
-
+player.rearCD=Math.max(0,player.rearCD-1)
 player.fired=false
 sx=drone.sx
 sy=drone.sy
@@ -1862,6 +1891,8 @@ curr.sy+=(Math.cos(gravDir)*(1000)/(distance*-100))
 
 
 if (curr.type=="bigMan"){
+	curr.x=0
+	curr.y=0
 curr.t+=0.01
 //curr.sx=(Math.sin((curr.t/10) * Math.PI/-180))
 //curr.sy=(Math.cos((curr.t/10) * Math.PI/-180))
@@ -2021,7 +2052,8 @@ embSelect={x:0,y:0,r:0}
 
 for (i0 in entities) {
 las=entities[i0]
-if (las.type=="bigMan"&&curr!==las&&curr.type!=="fighterDrone"){
+if (!curr.type=="bigMan"&&las.type=="bigMan"&&curr!==las&&curr.type!=="fighterDrone"){
+	if(curr.type=="bigMan"){console.log("urafukindumass")}
 //curr.sx=(Math.sin((curr.t/10) * Math.PI/-180))
 //curr.sy=(Math.cos((curr.t/10) * Math.PI/-180))
 
@@ -2192,6 +2224,7 @@ ctx.fillRect((w/2)+(Math.sin((prevDir))*20)-5,(h/2)+(Math.cos((prevDir))*20)-5,1
 			  }
             ctx.save()
         if (driving) {
+			keyPresseed=false
 											//handle controller inputs
 				if (player.cCon) {
 					player.controller=navigator.getGamepads()[0]
@@ -2206,19 +2239,21 @@ ctx.fillRect((w/2)+(Math.sin((prevDir))*20)-5,(h/2)+(Math.cos((prevDir))*20)-5,1
 
 					zoom=Math.max(zoom*(1+gamepadZoom*0.01),0.4)
 					commandedSpeed=commandedSpeed+(player.speed*gamepadThrottle)
-					if (Math.abs(gamepadsx)>0.1){ turnSpeed+=(gamepadsx*(0.025+Math.abs(speed*2)))*(gyro.eff/100)}
-					if (Math.abs(gamepadlx)>0.1){strafeSpeed-=gamepadlx*(systems.sideThrust.eff/16000)}
+					if (Math.abs(gamepadThrottle)>0.1) {keyPressed=true}
+					if (Math.abs(gamepadsx)>0.1){ turnSpeed+=(gamepadsx*(0.025+Math.abs(speed*2)))*(gyro.eff/100);keyPressed=true}
+					if (Math.abs(gamepadlx)>0.1){strafeSpeed-=gamepadlx*(systems.sideThrust.eff/16000);keyPressed=true}
 					
 				}
 		  if (dd) {
+			keyPressed=true
 		               							if(pmode){
 							drone.sx+=0.001
 							}else{
          turnSpeed+= (0.025+Math.abs(speed*2))*(gyro.eff/100)
 				}
 				}
-				if (qd) { strafeSpeed+=systems.sideThrust.eff/16000}
-				if (ed) { strafeSpeed-=systems.sideThrust.eff/16000}
+				if (qd) { strafeSpeed+=systems.sideThrust.eff/16000;keyPressed=true}
+				if (ed) { strafeSpeed-=systems.sideThrust.eff/16000;keyPressed=true}
 				
 				//handle strafing speeds or something idk man
 
@@ -2231,6 +2266,7 @@ ctx.fillRect((w/2)+(Math.sin((prevDir))*20)-5,(h/2)+(Math.cos((prevDir))*20)-5,1
 								
 
 					   if (ad) {
+						keyPressed=true
 						             							if(pmode){
 							drone.sx-=0.001
 							}else{
@@ -2240,12 +2276,12 @@ ctx.fillRect((w/2)+(Math.sin((prevDir))*20)-5,(h/2)+(Math.cos((prevDir))*20)-5,1
 //					  if (zd) {
 //		hoff+=0.1
 //					  }
-				 		   if (wd) { commandedSpeed=commandedSpeed+player.speed }
+				 		   if (wd) { commandedSpeed=commandedSpeed+player.speed;keyPressed=true }
 
           
 			  
 				
-							if (sd) {commandedSpeed=commandedSpeed-player.speed}
+							if (sd) {commandedSpeed=commandedSpeed-player.speed;keyPressed=true}
 
            
 			  
@@ -2262,7 +2298,11 @@ turnSpeed=turnSpeed/(1+(0.1*(gyro.eff/100)))
 
 				} 
 
-
+//actual brakes, dont question what the one above me was.
+if (drone.brakes&&!keyPressed){
+	drone.sx=drone.sx/1.03
+	drone.sy=drone.sy/1.03
+}
 				
 				  strafeSpeed=strafeSpeed/1000
 				shipSystems()
@@ -2562,6 +2602,7 @@ curr.remove=true
 //drone.x=curr.x+(Math.sin((aDir)))*(curr.r/2)
 //drone.y=curr.y+(Math.cos((aDir)))*(curr.r/2)
 } else {
+if(victim.type=="bigMan"||curr.type=="bigMan"){console.log("urafukindumass")}
 colliding=true
 calX=curr.x
 calY=curr.y
@@ -2642,13 +2683,13 @@ pushConMsg("WELCOME, PILOT. PLEASE TYPE 'help' IN THE CONSOLE FOR ASSISTANCE")
 function renderEnt(curr) {
 //handle lagging by skipping rendering
 if (tickDelay<7||(gt%tickDelay)==1||settings.slowLag){
-if (getDist(drone.x,drone.y,curr.x,curr.y)<(zoom/10)) {
+if (getDist(drone.x,drone.y,curr.x,curr.y)<(zoom/10)||curr.type=="bigMan") {
 				curr.vFade=Math.max(0,curr.vFade-0.05)
 				
 
 			
 				}else {curr.vFade=Math.min(1,curr.vFade+0.01)}
-				if (curr.vFade<1||!settings.drawFOV){
+				if (curr.vFade<1||!settings.drawFOV||curr.type=="bigMan"){
 									oldfilt = ctx.filter
 				if ( settings.drawFOV){ctx.filter = `opacity(${100-curr.vFade*100}%)`}
 				if(settings.indClean){
@@ -2726,11 +2767,12 @@ mpClientTick()
 }
 
 
-function fireLas(parent,acc,dmg){
+function fireLas(parent,acc,dmg,dir){
 turn = parent.t
 
 if (parent.tt){turn=parent.tt}
-			newLas={x:parent.x,y:parent.y,w:1,h:12,noCollide:true,sprite:laserSprite,dist:1,type:"laser",t:parent.t-180+acc,sx:parent.sx+Math.sin(((acc+parent.t)*-Math.PI/180))*10,sy:parent.sy+Math.cos(((acc+parent.t)*-Math.PI/180))*10,r:10,visible:true,mass:2,dmg:dmg,life:50,hit:false,parent:parent}
+if (dir){turn=dir}
+			newLas={x:parent.x,y:parent.y,w:1,h:12,noCollide:true,sprite:laserSprite,dist:1,type:"laser",t:turn-180+acc,sx:parent.sx+Math.sin(((acc+turn)*-Math.PI/180))*10,sy:parent.sy+Math.cos(((acc+turn)*-Math.PI/180))*10,r:10,visible:true,mass:2,dmg:dmg,life:85,hit:false,parent:parent}
 			return entities.push(newLas)}
 
 //are we done yet??
