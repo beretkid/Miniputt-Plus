@@ -34,8 +34,10 @@ the player will live in the station and move to areas/regenerate terrain.
 the "coordanites" will be seeds for the terrain
 the game will save any maps it loads so if a player goes to a seed they visited before, it will load the state they left it in.
 
+add an "aiming line"
 
-
+cap turnrate by using max and min
+instead of x=(x-y)/2
 
 <!DOCTYPE html>
 <html>
@@ -1884,4 +1886,12 @@ tick();
 </script>
 
 </body>
-</html>
+</html>'
+
+add raycast based 1d vision, for the sake of seeing far away things.
+make it so it swaps the collision victim out for who has the least mass -- done!
+make a variable that keeps track of the last thing that hit an entitiy
+add realtime shading
+add impulse engine varients, engines that are relatively weak but are  able to preform short quick burst maneuvers, perfect for dodging.
+
+for lazyness purpouses, we can use dropdown menu's for part selection purpouses
