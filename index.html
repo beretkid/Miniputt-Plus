@@ -41,9 +41,12 @@
 <img hidden=true src="dd1.png" id="dd1">
 <img hidden=true src="dd2.png" id="dd2">
 <img hidden=true src="dd3.png" id="dd3">
-<img hidden=true src="galaxy1.png" id="galaxy1">
-<img hidden=true src="galaxy2.png" id="galaxy2">
-<img hidden=true src="galaxy3.png" id="galaxy3">
+<img hidden=true src="b1.png" id="b1">
+<img hidden=true src="b2.png" id="b2">
+<img hidden=true src="b3.png" id="b3">
+<img hidden=true src="b4.png" id="b4">
+<img hidden=true src="b5.png" id="b5">
+<img hidden=true src="b6.png" id="b6">
 <img hidden=true src="GatlingDrone.png" id="minigunDrone">
 <div style="z-index:9;position:absolute;top:0%;left:0%;"id="logo">
 <img src="Logo.gif" >
@@ -53,16 +56,20 @@
 <div style="color:#c9a100;">A and D | Turning</div>
 <div style="color:#c9a100;">Q and E | Strafing</div>
 <div style="color:#c9a100;">O and P | Zooming</div>
+	<div style="color:#c9a100;">Space | Shoot</div>
 <div style="color:#c9a100;">G | Control panel </div>
 <div style="color:#c9a100;">C | Camera mode </div>
 <div style="color:#c9a100;">Z | Percision mode </div>
 <div style="color:#c9a100;">T | Use ship terminal </div>
+<div style="color:#c9a100;">V | toggle main menu </div>
+<div style="color:#c9a100;">l | Show/Hide aimlaser </div>
 <div style="color:#c9a100;">~ | Debug mode </div>
+<div style="color:#c9a100;">H| toggle this menu </div>
 <hr>
 <div style="color:#c9a100;">Tip: Each system effects its own thing and will use your overall power usage. </div>
 <div style="color:#c9a100;">Tip Jr: You are NOT immortal, pay attention to your health and oxygen meters!</div>
 <div style="color:#c9a100;">--Low oxygen will cause your screen to darken slowly and will kill you if unremedied.</div>
-<div style="color:#c9a100;">Press any key to close this menu! </div>
+<div style="color:#c9a100;">Press any key (or 'h' if you opened this menu) to this menu! </div>
 
 </div>
 <!--station docking UI.-->
@@ -109,7 +116,7 @@
 
 <canvas id="map" hidden=true width="250" height="250" style="background-image: url('MapBk.gif'); background-Size: 10px 10px;
     background-repeat: repeat;  position:absolute;top:0%;left:0%;border:0px solid;border-color:#0f0f0f;z-index:7" ></canvas>
-
+<canvas id="lidar" style="top:0%;left:0%;position:absolute;z-index:8;"></canvas>
 <canvas id="visuals" width="100" height="100" style="position:absolute;top:0%;left:0%;border:0px solid;border-color:#0f0f0f;z-index:5" >
 
 </canvas>
@@ -123,7 +130,8 @@
 
 
  <div hidden=true style="top:0%;left:0%;position:absolute;width:100%;height:100%;">
-  
+  <div id="systemsList" style="top:10%;left:0%;width:45%;height:70%;"></div>
+  <div id="systemsSubList" style="top:10%;left:45%;width:45%;height:70%;position:absolute"></div>
   </div>
 <div hidden=true style="top:0%;left:0%;position:absolute;width:100%;height:100%;">
   <h1>Station</h1>
@@ -132,6 +140,10 @@
   <div hidden=true style="top:0%;left:0%;position:absolute;width:100%;height:100%;">
   <text>Commerse</text>
    <button id="buyButton" style="top:10%;left:15%;">Buy</button>
+	<button onClick="changeCatagory('all')">All</button>
+	<button onClick="changeCatagory('upgrades')">Upgrades</button>
+	<button onClick="changeCatagory('services')">Services</button>
+	<button onClick="changeCatagory('consumables')">Consumables</button>
   <div id="itemsList" style="top:10%;left:0%;width:45%;height:70%;"></div>
  <div  id="UICreditsAmnt" style="">Credits</div>
  <input  id="amntSel" type="number" value=1>
@@ -174,7 +186,13 @@
 
 // --- Global Variables (FIXED) ---
 var canvas = document.getElementById('visuals');
+
 var ctx = canvas.getContext("2d");
+var lidar=document.getElementById('lidar')
+lidar.width=w
+lidar.height="10px"
+lidar.style.top = `${h-10}px`
+var lctx=lidar.getContext("2d")
 var map = document.getElementById('map');
 var mapctx = map.getContext("2d");
 var bCan = document.getElementById('backgroundVisuals');
@@ -182,9 +200,14 @@ var bctx = bCan.getContext("2d");
 var debug=false
 var selectedTile = [0,0]
 var rock1 = document.getElementById("rock1")
-
+var selectedSys
 var gFree = document.getElementById("gFree")
 var laserSprite = document.getElementById("laserSprite")
+function changeCatagory(cat){
+selectedCatagory=cat
+itemsList.innerHTML=""
+updateMenu()
+}
 var renderedEnts=[]
   const audImpact1 = new Audio("oddioimpct2.ogg")
   const audEngine = new Audio("thruster2.ogg")
@@ -222,6 +245,8 @@ var rGib1 = document.getElementById("rGib2")
 var minigunDrone = document.getElementById("minigunDrone")
 var sprk1 = document.getElementById("spark1")
 var itemsList = document.getElementById("itemsList")
+var systemsList = document.getElementById("systemsList")
+var systemsSubList = document.getElementById("systemsSubList")
 var menuHolder=document.getElementById("menuHolder")
 var menuSidebar=document.getElementById("menuSidebar")
 var fighterSprite = document.getElementById("fighterSprite")
@@ -231,6 +256,7 @@ var compSprite = document.getElementById("compSprite")
 var freightSprite = document.getElementById("freightSprite")
 var stationSprite = document.getElementById("stationSprite")
 var explosionSprite = document.getElementById("explosionSprite")
+var selectedCatagory = "all"
 //var t4 = document.getElementById("t4")
 // Add new wall references:
 var debugIcon = document.getElementById("debugIcon")
@@ -255,9 +281,11 @@ var gt=0
 var heat=1
 var submaptype=0
 var fuel = 10000
+const corruptionSymbols=["#","*","%","$","_","!"]
+const corruptionSymbolsCrit="!@#$%^&*()~`+=-_{}|[]\:;'/.,?><QWERTYUIOPASDFGHJKLZXCVBNM1234567890 ".split('').push("ERR","")
 const cOff=2
 //start at 10000
-const settings={generateField:true,runOutOfView:true,renderDist:w*h,cameraChase:true,paused:false,hardPaused:false,drawFOV:false,lightFalloff:4,conSize:1.5,gameSpeed:10,screenDarkness:50,notifEnabled:true,astroidsCollide:true,lazySV:false,freindlyDrones:false,lasersHurt:true,sharpShooterDrones:false,aimLaser:false,showTD:true,slowLag:false,indClean:false,hivisLasers:true,lineSize:7,multiplayer:true,canvready:false,minimap:true};
+const settings={generateField:true,runOutOfView:true,renderDist:w*h,cameraChase:true,paused:false,hardPaused:false,drawFOV:false,lightFalloff:4,conSize:1.5,gameSpeed:10,screenDarkness:50,notifEnabled:true,astroidsCollide:true,lazySV:false,freindlyDrones:false,lasersHurt:true,sharpShooterDrones:false,aimLaser:false,showTD:false,slowLag:true,indClean:false,hivisLasers:true,lineSize:7,multiplayer:true,canvready:false,minimap:true,lidar:true,rayCount:175,rayRadius:10,renderBackground:true};
 var rkp = false
 var zd = false
 var spin = 0
@@ -311,6 +339,7 @@ var xo
 var drone = {x:50,y:0,t:0,w:32,h:32,r:0,hp:100,sx:0,sy:0,r:0,mass:1,brakes:false}
 var turnSpeed=0
 var MenuLayout = 0
+var upgradeDatabase={heavyArmor:{dmgRes:12,c:"armor",name:"Heavy Armor"},martianArmor:{dmgRes:7,c:"armor",name:"Vicerite Armor Armor" },heavyLaser:{dmgRes:2,c:"laser",name:"Proton Missile",projType:"seekerOrb"}}
 //0=home
 //1=station
 //2=personal stats
@@ -350,6 +379,8 @@ var sy=0
 var mpReady=false
 var mpcReady=false
 var mapsubtype=0
+var bkRendered=true
+var decos=[{sprite:b1,minSize:25,maxSize:75,odd:true},{sprite:b2,minSize:25,maxSize:75,odd:true},{sprite:b3,minSize:25,maxSize:75,odd:true},{sprite:b4,minSize:0,maxSize:2,odd:false}]
 //controller support
 window.addEventListener("gamepaddisconnected", (controller) => {
 newGamepad(controller)
@@ -416,6 +447,9 @@ canvas.height = window.innerHeight;
 
 w=canvas.width
 h=canvas.height
+lidar.width=w
+lidar.height=10
+lidar.style.top = `${h-10}px`
 bCan.width = window.innerWidth/settings.conSize
 bCan.height = window.innerHeight;
 sky.style.top=`${(-h)}px`; 
@@ -486,6 +520,7 @@ updateMenu()
 var selectedItem = 0
 
 function updateMenu(){
+
 for (i in menu.children) {
 c=menu.children[i]
 if(i==mode){
@@ -504,6 +539,69 @@ if(mode==5){
 
 
 }
+if(mode==0) {
+i72=0
+for (i7 in systems) {
+
+
+if (!systemsList.children[i72]){
+
+
+
+newDiv = document.createElement('div')
+systemsList.appendChild(newDiv)
+newButt = document.createElement('button');
+newDiv.appendChild(newButt)
+newButt.textContent=systems[i7].des
+newButt.ref=i7
+//select
+
+newButt.addEventListener('click', (evnt) => {
+if (lastSel){lastSel.style.backgroundColor="#d9d9d9"}
+systemsSubList.innerHTML=''
+
+src=evnt.srcElement
+selectedSys=src.ref
+src.style.backgroundColor="#6f77c7"
+lastSel=src
+// load layout
+updateMenu()
+});
+}
+i72+=1
+}
+//other menu shit
+if(selectedSys){
+i72=0
+
+for (i7 in systems[selectedSys].types){
+
+if (!systemsSubList.children[i72]){
+
+
+
+newDiv = document.createElement('div')
+systemsSubList.appendChild(newDiv)
+newButt = document.createElement('button');
+newDiv.appendChild(newButt)
+newButt.textContent=systems[selectedSys].types[i72].name
+newButt.ref=i7
+newButt.addEventListener('click', (evnt) => {
+//apply new type
+systems[selectedSys].typeUsed=newButt.ref
+for (i9 in systems[selectedSys]) {
+
+if (systems[selectedSys].types[newButt.ref][i9]){
+
+systems[selectedSys][i9]=systems[selectedSys].types[newButt.ref][i9]
+}
+}
+})
+}
+i72+=1
+}
+}
+}
 if(mode==2) {
 for (i7 in station.store) {
 UICreditsAmnt.innerText="Credits: "+player.credits+"C"
@@ -511,6 +609,8 @@ UICreditsAmnt.innerText="Credits: "+player.credits+"C"
 if (itemsList.children[i7]) {
 
 } else {
+
+if (station.store[i7].catagory==selectedCatagory||selectedCatagory=="all"){
 newDiv = document.createElement('div')
 itemsList.appendChild(newDiv)
 newButt = document.createElement('button');
@@ -530,6 +630,7 @@ lastSel=src
 // load layout
 updateMenu()
 });
+}
 }
 }
 }
@@ -665,7 +766,7 @@ if (txt=="store"){
 		}
 		amnt=Math.abs(Number(arg3))
 		if(!arg3){amnt=1}
-		
+		console.log(selected)
 		if(selected&&player.credits>=selected.cost*amnt&&selected.amnt>=amnt){
 			//ok we can actualy buy this
 			selected.amnt-=arg3
@@ -688,9 +789,16 @@ if (txt=="store"){
 			if (selected.cd=="repairCharge"){
 				player.repairCharges+=amnt
 			}
+			//upgrades
+			if (selected.upgrade){
+			upgrade=upgradeDatabase[selected.ref]
+			console.log("Gave",selected.ref,upgradeDatabase[selected.ref])
+			giveUpgrade(upgrade)
+				
+			}
 			pushConMsg("Purchased.")
 			
-		}
+		}else{pushConMsg("Unable to make purchase!")}
 	}
 }
 }
@@ -928,9 +1036,13 @@ pushConMsg("")
 }
 }}
 function resetSys(sys) {
-theThing={engine:{dam:0,on:true,des:"Type 1 Engine",heat:0,eff:100,maxHeat:500,insulation:10,pwrUsg:-250,minHeat:-100,missing:false,dmgRes:10,baseUsg:-250,settings:[{des:"flow",val:50,default:50,min:0,max:150}]},cooling:{dam:0,on:true,des:"Cooling System",heat:20,eff:100,maxHeat:150,insulation:0,pwrUsg:50,minHeat:-100,missing:false,dmgRes:1},tank:{dam:0,on:true,des:"Plasma Tank",heat:20,eff:100,maxHeat:125,insulation:0,pwrUsg:0,minHeat:-100,missing:false,baseUsg:0,settings:[],dmgRes:1},gyroscope:{dam:0,on:true,des:"PuttTech Type 3 Gyroscope",heat:20,eff:100,maxHeat:200,insulation:0,pwrUsg:35,minHeat:-100,missing:false,dmgRes:7,baseUsg:35,settings:[{des:"speed",val:50,default:50,min:0,max:150}]},sideThrust:{dam:0,on:true,des:"Side Thrusters",heat:20,eff:100,maxHeat:1000,baseUsg:25,settings:[{des:"flow",val:50,default:50,min:0,max:150}],insulation:10,pwrUsg:25,minHeat:-100,missing:false,dmgRes:1},thruster:{dam:0,on:true,des:"Main Thrusters",heat:20,eff:100,maxHeat:1000,insulation:10,baseUsg:15,settings:[{des:"flow",val:50,default:50,min:0,max:150}],pwrUsg:50,minHeat:-100,missing:false,dmgRes:1},shipComputer:{dam:0,on:true,des:"Ship Computer",heat:0,eff:100,maxHeat:125,insulation:5,pwrUsg:15,minHeat:-200,baseUsg:15,settings:[],missing:false,dmgRes:1},cockpit:{dam:0,on:true,des:"Cockpit",heat:20,eff:100,maxHeat:80,baseUsg:15,settings:[{des:"lifesupport",val:50,min:0,max:150,default:50}],insulation:5,pwrUsg:15,minHeat:-200,missing:false,dmgRes:1},laser:{dam:0,on:true,des:"Mk1 Scout laser",type:"basic",heat:20,eff:100,maxHeat:135,baseUsg:25,insulation:5,pwrUsg:25,minHeat:-200,missing:false,dmgRes:3,cd:0,settings:[{des:"rate",val:50,min:0,max:150,default:50}]},armor:{dam:0,on:true,des:"Armor Plating",heat:20,eff:100,maxHeat:305,insulation:0,pwrUsg:0,minHeat:-100,missing:false,baseUsg:0,settings:[],dmgRes:8}}
+theThing={engine:{dam:0,on:true,des:"Type 1 Engine",heat:0,eff:100,maxHeat:500,insulation:10,pwrUsg:-250,minHeat:-100,missing:false,dmgRes:10,baseUsg:-250,settings:[{des:"flow",val:50,default:50,min:0,max:150}]},cooling:{dam:0,on:true,des:"Cooling System",heat:20,eff:100,maxHeat:150,insulation:0,pwrUsg:50,minHeat:-100,missing:false,dmgRes:1},tank:{dam:0,on:true,des:"Plasma Tank",heat:20,eff:100,maxHeat:125,insulation:0,pwrUsg:0,minHeat:-100,missing:false,baseUsg:0,settings:[],dmgRes:1},gyroscope:{dam:0,on:true,des:"PuttTech Type 3 Gyroscope",heat:20,eff:100,maxHeat:200,insulation:0,pwrUsg:35,minHeat:-100,missing:false,dmgRes:7,baseUsg:35,settings:[{des:"speed",val:50,default:50,min:0,max:150}]},sideThrust:{dam:0,on:true,des:"Side Thrusters",heat:20,eff:100,maxHeat:1000,baseUsg:25,settings:[{des:"flow",val:50,default:50,min:0,max:150}],insulation:10,pwrUsg:25,minHeat:-100,missing:false,dmgRes:1},thruster:{dam:0,on:true,des:"Main Thrusters",heat:20,eff:100,maxHeat:1000,insulation:10,baseUsg:15,settings:[{des:"flow",val:50,default:50,min:0,max:150}],pwrUsg:50,minHeat:-100,missing:false,dmgRes:1},shipComputer:{dam:0,on:true,des:"Ship Computer",heat:0,eff:100,maxHeat:125,insulation:5,pwrUsg:15,minHeat:-200,baseUsg:15,settings:[],missing:false,dmgRes:1},cockpit:{dam:0,on:true,des:"Cockpit",heat:20,eff:100,maxHeat:80,baseUsg:15,settings:[{des:"lifesupport",val:50,min:0,max:150,default:50}],insulation:5,pwrUsg:15,minHeat:-200,missing:false,dmgRes:1},laser:{dam:0,on:true,projType:"default",des:"Mk1 Scout laser",type:"basic",heat:20,eff:100,maxHeat:135,baseUsg:25,insulation:5,pwrUsg:25,minHeat:-200,missing:false,dmgRes:3,cd:0,settings:[{des:"rate",val:50,min:0,max:150,default:50}]},armor:{dam:0,on:true,des:"Armor Plating",heat:20,eff:100,maxHeat:305,insulation:0,pwrUsg:0,minHeat:-100,missing:false,baseUsg:0,settings:[],dmgRes:8,types:[{name:"Stock"},{name:"Nantite Armor"}]}}
 for (i in theThing) {
 theThing[i].usg=0
+if(!theThing[i].types){theThing[i].types=[{name:"Stock",dmgRes:theThing[i].dmgRes}]
+theThing[i].typeUsed=theThing[i].types[0]
+}
+
 }
 return theThing
 }
@@ -963,10 +1075,21 @@ player.dizzy+=100
 console.log(sysSelect,"is getting damaged")
 //apply armor thingymabobs
 //after 60% damage shit gets bad
+oldDam=sysSelect.dam
 sysSelect.dam+=(amnt/sysSelect.dmgRes)*Math.max(0.6,armor.dam/100)
+if (oldDam<100&&sysSelect.dam>100&&sysSelect.des==systems.armor.des){
+pushConMsg("WARNING: ARMOR CONDITION AT 0%;")
+pushConMsg("CRITICAL SYSTEMS EXSPOSED!")
+}
 //GET DOWN ZIR!!!!
 //take the other 40% dmg. (Its gotta go somewhere (Not really, but fuck you.))
+oldDam=armor.dam
 armor.dam+=(amnt/sysSelect.dmgRes)*Math.max(0.4,armor.dam/100)
+
+if (oldDam<100&&armor.dam>100){
+pushConMsg("WARNING: ARMOR CONDITION AT 0%;")
+pushConMsg("CRITICAL SYSTEMS EXSPOSED!")
+}
 newMove=movedir(sx,sy,random(-180,180),random(0.01,0.1))
 randSize=random(1,6)
 randLife=random(100,1000)
@@ -993,6 +1116,26 @@ timeSinceLastMsg=0;
 }
 var con = ""
 function pushConMsg(msg) {
+splitMsg=msg.split("")
+if(systems.shipComputer.dam>90){
+
+
+for (ii in splitMsg) {
+if(random(0,120-systems.shipComputer.dam/1.1)==0&&systems.shipComputer.dam>10){
+
+splitMsg[ii]=corruptionSymbolsCrit[random(0,corruptionSymbolsCrit.length)]
+
+}
+}
+}
+for (ii in splitMsg) {
+if(random(0,60-systems.shipComputer.dam/2.2)==0&&systems.shipComputer.dam>10){
+
+splitMsg[ii]=corruptionSymbols[random(0,corruptionSymbols.length)]
+
+}
+}
+msg=splitMsg.join("")
 outcon.push(msg)
 newMsg = document.createElement('div');
 newMsg.innerHTML=msg
@@ -1015,11 +1158,15 @@ var dd=false
 var GRID_SIZE = 32
 var repairButton = document.getElementById("repairButton")
 var amntSel = document.getElementById("amntSel")
+
+
+var store = [{des:"Plasma[FAAE]",amnt:359345,cost:3,cd:"fuel",catagory:"consumables"},{des:"Heavy_Armor",amnt:1,cost:750,cd:"hvyArmor",ref:"heavyArmor",upgrade:true,catagory:"upgrades"},{des:"Proton_Seeker",amnt:1,cost:500,cd:"heavyLaser",ref:"heavyLaser",upgrade:true,catagory:"upgrades"},{des:"Repairs",amnt:20034,cost:200,cd:"repair",catagory:"consumables"},{des:"RepairKits",amnt:276,cost:72,cd:"repairCharge",catagory:"services"},{des:"Vicerite_Armor",amnt:2,cost:650,cd:"martianArmor",catagory:"upgrades"}]
 const easingAmount = 0.05; 
 
 
 const sysMenu = document.getElementById("sysMenu")
 const sysBox = document.getElementById("sysSelectBox")
+
 sysBox.style.left = `${(175)}px`; 
 sysBox.style.top = `${(0)}px`; 
 sysBox.hidden = true
@@ -1101,7 +1248,7 @@ systems[i].menuStats=newText
 newButt.systemRef=i
 lastPressed=newButt
 partSelected=i
-console.log(systems[i])
+
 newButt.style.backgroundColor = "lightgrey";
 
 newButt.addEventListener('click', (evnt) => {
@@ -1136,13 +1283,13 @@ document.addEventListener('mousedown', (event) => {
 	 mouseDir = (((Math.atan2(event.clientY - h/2, event.clientX - w/2) * 180 / Math.PI)+90)+trueTurn)
 if (player.rearCD==0){
 	player.rearCD=45
-console.log(event)	
+
 if (event.target==canvas||event.button==0){
 	
 dir=mouseDir
-console.log(w/2,mouseX)
+
 console.log(dir)
-fireLas(drone,3,10,dir)
+fireLas(drone,3,10,dir,systems.laser.projType)
 }
 }
 })
@@ -1210,7 +1357,7 @@ pushMsg("Repaired "+rng+"Dmg ("+player.repairCharges+"/8)")
 }
 })
 var entities = [{x:75,y:97,w:150,h:150,sprite:p3,dist:9,type:"Planet",sx:0,sy:0,t:0,r:64,grav:100,visible:true,mass:100000}]
-var station={x:0,y:0,w:128,h:128,sprite:stationSprite,dist:1,des:"Alpha Beta Station 78",type:"station",store:[{des:"Plasma[FAAE]",amnt:359345,cost:3,cd:"fuel"},{des:"Repairs",amnt:20034,cost:200,cd:"repair"},{des:"RepairKits",amnt:276,cost:72,cd:"repairCharge"}],jobs:[{name:"Astroid Clearing",reward:32},{name:"Stinkmaster hiring"}],t:0,sx:0,sy:0,t:0,r:44,visible:true,mass:10000000,collisionPoints:[{x:45,y:0,r:34},{x:-45,y:0,r:34},{x:0,y:-45,r:34},{x:0,y:45,r:34}],fuel:100000}
+var station={x:0,y:0,w:128,h:128,sprite:stationSprite,dist:1,des:"Alpha Beta Station 78",type:"station",store:store,jobs:[{name:"Astroid Clearing",reward:32},{name:"Stinkmaster hiring"}],t:0,sx:0,sy:0,t:0,r:44,visible:true,mass:10000000,collisionPoints:[{x:45,y:0,r:34},{x:-45,y:0,r:34},{x:0,y:-45,r:34},{x:0,y:45,r:34}],fuel:100000}
 entities.push(station)
 
 const fighterDroneTemplate={x:0,y:0,w:22,h:22,sprite:fighterSprite,dist:1,type:"fighterDrone",t:0,sx:0,sy:0,t:0,r:12,visible:true,mass:2,health:100,targ:{x:0,y:0,t:0,thrust:0},tt:0,cool:0,locked:false,dieSpinDir:random(-1,1,0)}
@@ -1238,7 +1385,21 @@ station.jobs.push(newJob)
 function evilExp(v) {
 return Math.exp(Math.abs(v))*Math.sign(v)
 }
-
+function hsvToRgb(h, s, v) {
+  s /= 100; v /= 100;
+  let i = Math.floor(h / 60), f = h / 60 - i,
+      p = v * (1 - s), q = v * (1 - f * s), t = v * (1 - (1 - f) * s),
+      r, g, b;
+  switch (i % 6) {
+    case 0: r = v, g = t, b = p; break;
+    case 1: r = q, g = v, b = p; break;
+    case 2: r = p, g = v, b = t; break;
+    case 3: r = p, g = q, b = v; break;
+    case 4: r = t, g = p, b = v; break;
+    case 5: r = v, g = p, b = q; break;
+  }
+  return `rgb(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)})`;
+}
 
 
 if(settings.generateField) {
@@ -1251,7 +1412,7 @@ drone.y = station.y+ 100
 var orbSpeed=1000
 function regenField(fieldRadius,seed) {
 densePoints=[]
-worldType=Math.floor(genSV2(1,5,seed,i*41))
+worldType={orbit:(Math.floor(genSV2(1,9,seed,i*41))==3),sorted:(Math.floor(genSV2(1,9,seed,i*422))==4),dronefield:(Math.floor(genSV2(1,9,seed,i*413))==3)}
 
 dPointsAmnt=Math.round(genSV2(1,5,seed,i*43))
 station.sx = 0 
@@ -1260,27 +1421,38 @@ station.x = 0
 station.y = 0
 //orbit
 minDist=100
-for (let i = 0; i < genSV2(0,13,seed,i*23); i++) {
+//decorating
+for (let i = 0; i < genSV2(1,30,seed,i*23); i++) {
 console.log("gahhh")
-
+decoNumber=Math.round(genSV2(0,decos.length,seed,i*34))
+if(Math.round(genSV2(0,5,seed,i*27))==1){decoNumber=3
+console.log("what the fack",decoNumber,newDeco=decos[decoNumber])
+}
+newDeco=decos[decoNumber]
 rDir=genSV2(-180,180,seed,i*92)*Math.PI/180
 
 randomT=genSV2(-180,180,seed,i*98)
 //dont question why this uses direction for size.
 sizeDir=genSV2(-Math.PI*2,Math.PI*2,seed,i*47)
-size=genSV2(45,75,seed,i*11)
-rDist=(genSV2(minDist,fieldRadius*(10+hoff),seed,i*102))
-rx=Math.sin(rDir)*rDist
-ry=Math.cos(rDir)*rDist
+size=genSV2(newDeco.minSize,newDeco.maxSize,seed,i*11)
+
+rDist=(genSV2(minDist,fieldRadius,seed,i*102))
+rx=Math.sin(rDir)*(rDist*2)
+ry=Math.cos(rDir)*(rDist*2)
 sizeX=(size/2)+Math.sin(sizeDir)*size*100
 sizeY=(size/2)+Math.cos(sizeDir)*size*100
+if (!newDeco.odd){
+sizeX=size*100;sizeY=size*100;}
 
 
-sprite=document.getElementById("galaxy"+Math.round(genSV2(1,3,seed,i*34)))
 
+sprite=newDeco.sprite
+//if (Math.round(genSV2(1,5,seed,i*34))>2){sizeX=size;sizeY=size;}
 background.unshift({x:rx,y:ry,w:sizeX,h:sizeY,sprite:sprite,dist:(10+hoff),type:"galaxy",hue:genSV2(-180,180,seed,i*45),sx:0,sy:0,t:randomT,r:size,visible:true,mass:size/10,health:size/1})
 }
-if (worldType==3) { 
+//swap to an object type for worldtype instead of an int, that way we can combine mutliple gentypes
+//orbit worldtype
+if (worldType.orbit) { 
 fieldRadius=15000
 minDist=10000
 rDist=genSV2(minDist,fieldRadius,seed,4*105)
@@ -1302,14 +1474,21 @@ size=genSV2(32,160,seed,i*97)
 randomT=genSV2(-180,180,seed,i*96)
 
 
-rDist=genSV2(minDist,fieldRadius,seed,i*102)
+rDist=genSV2(minDist,fieldRadius,seed,i*362)
 rDir=genSV2(-180,180,seed,i*82)*Math.PI/180
+if (worldType.sorted){
+rDir=Math.round(rDir*Math.PI)/Math.PI
+rDist=Math.round(rDist*100)/100
+console.log("Sorting...",rDir,rDist)
+}
 rx=Math.sin(rDir)*rDist
 ry=Math.cos(rDir)*rDist
+//"Sorted" worldtype
+
 nsx = 0
 nsy = 0
 //orbit speed applier
-if (worldType==3){
+if (worldType.orbit){
 rDir=rDir+Math.PI/2
 spd=genSV2(0.5,1.5,seed,i*1023)
 nsx=Math.sin(rDir)*1+spd
@@ -1322,13 +1501,11 @@ console.log(nsx,rDir,orbSpeed)
 entities.push({x:rx,y:ry,w:size,h:size,sprite:sprite,dist:1,type:"astroid",sx:nsx,sy:nsy,t:randomT,r:size,visible:true,mass:size/10,health:size/1})}
 //evil, fucked up place
 drones = Math.floor(genSV2(4,20,seed,i*81))
-if(worldType==2){
+if(worldType.dronefield){
 console.log("Im so sorry its over for you my boy..")
 drones = Math.floor(genSV2(20,40,seed,i*81))
 }
-if (worldType==3) {
 
-}
 for (let i = 0; i < drones; i++) {
 rDist=genSV2(minDist,fieldRadius,seed,i*22)
 rDir=genSV2(-180,180,seed,i*133)*Math.PI/180
@@ -1355,6 +1532,7 @@ if (!agit){agit=1000000000}
 off=100+Math.E*Math.pow(off,2)-Math.sin(off)
 seed=100+Math.E*Math.pow(seed,2)-Math.cos(seed)
 if(settings.lazySV){
+//I can't belive it is Math.random()!"
 return(Math.random())
 }
 return Math.abs((Math.sin(seed+off)+Math.cos(seed+off))*off)%1
@@ -1443,6 +1621,34 @@ return Math.sign(Math.random()-0.5)
 }
 function diff(a,b) {
 return(a-b)
+}
+function newRay(x, y, angle, range = 1500, fidelity = 2) {
+    let curX = x;
+    let curY = y;
+
+    for (let i = 0; i < range / fidelity; i++) {
+        curX += Math.sin(angle) * fidelity;
+        curY += Math.cos(angle) * fidelity;
+
+        // 1. Find the key for the current cell
+        let cellX = Math.floor(curX / CELL_SIZE);
+        let cellY = Math.floor(curY / CELL_SIZE);
+        let key = `${cellX},${cellY}`;
+
+        // 2. Only check entities in this specific cell
+        let bucket = spatialHash[key];
+        if (bucket) {
+            for (let ent of bucket) {
+                if (ent.noCollide) continue;
+                if (checkCircle({x: curX, y: curY, r: fidelity}, ent)&&ent.type!=="laser"&&ent.type!=="debris"&&ent.type!=="explosion") {
+
+					 
+                    return { hit: true, obj: ent, dist: i * fidelity};
+                }
+            }
+        }
+    }
+    return { hit: false, obj: "none", dist: range };
 }
 
 
@@ -1610,6 +1816,17 @@ menuHolder.hidden = !menuHolder.hidden
 			settings.aimLaser=!settings.aimLaser
 			
 		  }
+		  		  		  	  		  	if (kc == 72) {
+
+			document.getElementById("logo").hidden=!document.getElementById("logo").hidden;
+			
+		  }
+		  		  		  	  		  	if (kc == 75) {
+
+			settings.lidar=!settings.lidar
+			settings.renderBackground=!settings.renderBackground
+			
+		  }
 		  		  		  	  		  	if (kc == 79) {
 
 			pd=true
@@ -1720,16 +1937,30 @@ adaptWindow()
     
 	 
 var outcon=[]
+const CELL_SIZE = 100; // How big each grid square is
+let spatialHash = {};
 
+function updateSpatialHash() {
+    spatialHash = {}; // Clear every frame (for moving objects)
+    for (let ent of renderedEnts) {
+        // Find which cell the entity is in
+        let cellX = Math.floor(ent.x / CELL_SIZE);
+        let cellY = Math.floor(ent.y / CELL_SIZE);
+        let key = `${cellX},${cellY}`;
+
+        if (!spatialHash[key]) spatialHash[key] = [];
+        spatialHash[key].push(ent);
+    }
+}
 	 
 function tick() {
-
+updateSpatialHash()
 //loop if far away from map
-if (worldType==3){fieldRadius=15000}
+if (worldType.orbit){fieldRadius=15000}
 if (getDist(drone.x,drone.y,0,0)>fieldRadius+300) {
 oppose=pointAt(0,0,drone.x,drone.y)
 dist=getDist(drone.x,drone.y,0,0)
-console.log(dist)
+
 drone.sx+= Math.sin(oppose)*0.05
 drone.sy+= Math.cos(oppose)*0.05
 
@@ -1926,7 +2157,9 @@ seconds = Math.floor(gt/100)
 			
 
 //background rendering
+if (bkRendered){
 		 bctx.clearRect(0,0,w,h)
+if(settings.renderBackground){		 
 bctx.save()
 
 	 bctx.translate((w/2),(h/cOff))
@@ -1947,7 +2180,7 @@ bctx.save()
 				bctx.filter=`hue-rotate(${curr.hue}deg)`;
 				}
 				if(curr.type=="galaxy"){
-				bctx.filter=`hue-rotate(${curr.hue}deg) opacity(20%)`;
+				bctx.filter=`hue-rotate(${curr.hue}deg) opacity(40%)`;
 				}
 				
 				bctx.drawImage(curr.sprite,-curr.w/2,-curr.h/2,curr.w,curr.h)
@@ -1955,7 +2188,9 @@ bctx.save()
 			 bctx.restore();
 				}
 				bctx.restore()
-
+}
+bkRendered=true
+}
 				
 		    for (i in entities) {
             curr = entities[i]
@@ -1963,20 +2198,13 @@ bctx.save()
 
 //shout out to my boy Con Peuter
 
-let dx = Math.abs(curr.x - drone.x);
-let dy = Math.abs(curr.y - drone.y);
-
-// 2. Check if the scaled distance exceeds half the screen dimensions
-if (curr.type == "bigMan" || (settings.runOutOfView && (
-    (dx * zoom) > (w / 2) + ((curr.r*curr.dist)* zoom) || 
-    (dy * zoom) > (h / 2) + ((curr.r*curr.dist) * zoom)
-))) {
+if (getDist(curr.x,curr.y,drone.x,drone.y)>1000){
 				curr.x+=curr.sx
 				curr.inRange=false
 				
 				curr.y+=curr.sy
 				//shitty orbit if far away enough
-				if (worldType==3){
+				if (worldType.orbit){
 
 gravDir=pointAt(drone.x,drone.y,0,0)
 distance=getDist(drone.x,drone.y,0,0)
@@ -2031,6 +2259,8 @@ curr.sy+=Math.cos(curr.t)*(curr.thrust)
 if(random(1,4)==2){flash(curr.x,curr.y)}
 if(random(0,50)==10||drone.health<-30){
 	player.droneKills+=1
+	player.credits+=10
+	
 	newExplosion(curr.x,curr.y,random(8,122),5)
 	checkJobs()
 	debrisBoom(curr.x,curr.y)
@@ -2071,8 +2301,9 @@ while (diff > Math.PI) {diff -=Math.PI*2}
 curr.tt+=(diff/Math.exp(Math.abs(diff)))/adaptSpeed
 //y0uR d0n3 N0w BUD
 if(diff<0.0001||settings.sharpShooterDrones){curr.tt=curr.targ.t}
+speedDiff=getDist(drone.sx,drone.sy,curr.sx,curr.sy)
 
-curr.thrust=0.02/Math.max(5+Math.abs(diff),1)
+curr.thrust=(0.02*Math.max(0.9,speedDiff))/Math.max(5+Math.abs(diff),1)
 
 if(diff<0.1&&random(0,25)==2&&curr.cool<0&&curr.locked&&!settings.freindlyDrones){fireLas(curr,random(-curr.acc,curr.acc,0),curr.dmg,curr.t);curr.cool=curr.fireCool}
 curr.sx+=Math.sin(curr.tt)*(curr.thrust)
@@ -2087,7 +2318,16 @@ if (curr.type=="jettisoned") {
 curr.t+=curr.ts
 }
 if ( curr.type=="laser"){
-if(settings.hivisLasers){
+if (curr.lasType=="seekerOrb"&&curr.target){
+curr.t+=(Math.abs(curr.sx)-Math.abs(curr.sy))
+curr.sx/=1.01+(2000-curr.life)/20000
+curr.sy/=1.01+(2000-curr.life)/20000
+dir=pointAt(curr.x,curr.y,curr.target.x+curr.target.sx,curr.target.y+curr.target.sy)+(Math.PI)
+curr.sx+=Math.sin(dir)/10
+curr.sy+=Math.cos(dir)/10
+}
+if(settings.hivisLasers&&!curr.lastype=="seekerOrb"){
+
 curr.w = 1/Math.min(1,zoom)
 curr.h = 12/Math.min(1,zoom)
 }
@@ -2162,9 +2402,18 @@ embSelect={x:0,y:0,r:0}
 if(debug){
 pushMsg("Rendered: "+String(renderedEnts.length)+"not Rendered: "+String(entities.length-renderedEnts.length))
 }
+lastDist=1000
 for (i0 in renderedEnts) {
 las=renderedEnts[i0]
 if(las!==curr){
+if (curr.lasType=="seekerOrb"){
+if (las.type=="fighterDrone"){
+if (getDist(curr.x,curr.y,las.x,las.y)<lastDist){
+lastDist=getDist(curr.x,curr.y,las.x,las.y)
+curr.target=las
+}
+}
+}
 if (!curr.type=="bigMan"&&las.type=="bigMan"&&curr!==las&&curr.type!=="fighterDrone"){
 	if(curr.type=="bigMan"){console.log("urafukindumass")}
 //curr.sx=(Math.sin((curr.t/10) * Math.PI/-180))
@@ -2191,7 +2440,7 @@ las.hit=true
 curr.health-=random(10,25)
 curr.sx-=Math.sin(las.t*-Math.PI/180)*0.1/curr.mass
 curr.sy-=Math.cos(las.t*-Math.PI/180)*0.1/curr.mass
-console.log("oeughhh")
+
 }
 }
 }else{
@@ -2235,7 +2484,12 @@ collisionFollowThrough(drone,curr,{x:0,y:0,r:0})
 
 
 			 ctx.translate((curr.x-drone.x)/curr.dist,(curr.y-drone.y)/curr.dist)
-			 
+			 	if (settings.aimLaser&&false){
+				ctx.fillStyle="white"
+				arrivalTime=getDist(drone.x,drone.y,curr.x,curr.y)/10
+				ctx.fillRect(curr.x+(((curr.sx)-drone.sx)*arrivalTime),curr.y+(((curr.sy)-drone.sy)*arrivalTime),
+				5/zoom,5/zoom)
+				}
 			 ctx.rotate(curr.t * Math.PI/180)
 				//ctx.translate((curr.h/off),(curr.h/off))
 			 
@@ -2338,7 +2592,7 @@ ctx.fillRect((w/2)+(Math.sin((prevDir))*20)-5,(h/2)+(Math.cos((prevDir))*20)-5,1
 				ctx.closePath()
 			  }
             ctx.save()
-        if (driving) {
+        if (driving&&!repairing) {
 			keyPressed=false
 											//handle controller inputs
 				if (player.cCon) {
@@ -2368,8 +2622,8 @@ ctx.fillRect((w/2)+(Math.sin((prevDir))*20)-5,(h/2)+(Math.cos((prevDir))*20)-5,1
          turnSpeed+= (0.025+Math.abs(speed*2))*(gyro.eff/100)
 				}
 				}
-				if (qd) { strafeSpeed+=systems.sideThrust.eff/16000;keyPressed=true}
-				if (ed) { strafeSpeed-=systems.sideThrust.eff/16000;keyPressed=true}
+				if (qd) { strafeSpeed+=systems.sideThrust.eff/14000;keyPressed=true}
+				if (ed) { strafeSpeed-=systems.sideThrust.eff/14000;keyPressed=true}
 				
 				//handle strafing speeds or something idk man
 
@@ -2540,9 +2794,13 @@ ctx.filter = oldFilt
 			}
 			//reset outcon
 			outcon.splice(0,outcon.length)
+			if (settings.showTD){pushMsg(tickDelay)}
         tick()
 		  }
     }, settings.gameSpeed);
+	 if(settings.lidar&&(gt%10)==0){
+checkLidar()
+}
 }
  function stg(thing) {
 return Math.round(thing / 32) * 32
@@ -2573,6 +2831,9 @@ if(cockpit.dam>100||cockpit.missing) {
 
 
 }
+if(armor.type=="martianArmor") {
+armor.dam= Math.max(armor.dam-0.01,0)
+}
 fakeSbDown=(sbdown)
 if(player.cCon){fakeSbDown=(sbdown|| player.controller.buttons[0].value>0)}
 
@@ -2582,7 +2843,7 @@ player.fired=true
 acc=random(-(1-laser.settings[0].val/150)*3,(1-laser.settings[0].val/150)*3,0)
 
 acc2=acc*Math.PI/180
-fireLas(drone,acc,30,trueTurn,systems.laser.type)
+fireLas(drone,acc,30,trueTurn,systems.laser.projType)
 }
 player.air-=0.02+cockpit.dam/1000
 player.air += 2/(101-systems.cockpit.eff)
@@ -2814,6 +3075,17 @@ pushConMsg("WELCOME, PILOT. PLEASE TYPE 'help' IN THE CONSOLE FOR ASSISTANCE")
  }
 function renderEnt(curr) {
 //handle lagging by skipping rendering
+//yes, it uses abs twice, please shut up.
+let dx = Math.abs(Math.abs((curr.x - drone.x))+10)
+let dy = Math.abs(Math.abs((curr.y - drone.y))+10)
+//("Highest screen axes size")
+//this is done simply to just make it not dissapear early
+hsas=Math.max(w,h)
+// 2. Check if the scaled distance exceeds half the screen dimensions
+if (curr.type == "bigMan" || (settings.runOutOfView && (
+    (dx * zoom) < ((hsas / 2)) + ((curr.r*curr.dist)* zoom) || 
+    (dy * zoom) < ((hsas / 2)) + ((curr.r*curr.dist) * zoom)
+))) {
 if (tickDelay<7||(gt%tickDelay)==1||settings.slowLag){
 if (getDist(drone.x,drone.y,curr.x,curr.y)<(zoom/10)||curr.type=="bigMan") {
 				curr.vFade=Math.max(0,curr.vFade-0.05)
@@ -2839,11 +3111,12 @@ if (getDist(drone.x,drone.y,curr.x,curr.y)<(zoom/10)||curr.type=="bigMan") {
 				ctx.filter=`hue-rotate(${curr.hue}deg);`;
 				}
 				if(curr.type=="galaxy"){
-				ctx.filter=ctx.filter+"opacity(70%)"
+				ctx.filter=ctx.filter+`opacity(${40+(Math.sin(gt/10)*10)+curr.hue}%)`
 				}
 				ctx.drawImage(curr.sprite,-curr.w/2,-curr.h/2,curr.w,curr.h)
-				
+
 				ctx.filter=oldfilt
+				}
 				}
 				}
 }
@@ -2912,12 +3185,53 @@ if(!type){type="basic"}
 
 if (parent.tt){turn=parent.tt}
 if (dir){turn=dir}
+pwidth=1
+bulletSpeed=10
+life=145
+sprite=laserSprite
+if (type=="fatfuck"){bulletSpeed=1;dmg+=20;pw=16;console.log("FATFUCK DETECTED!!",type);}
+if (type=="seekerOrb"){life=2000;bulletSpeed=2;pwidth=12;dmg+=30;pw=16;console.log("MISSILE",type);sprite=sprk1}
 
-console.log("ohmagad")
-			newLas={x:parent.x,y:parent.y,w:1,h:12,noCollide:true,sprite:laserSprite,dist:1,type:"laser",t:turn-180+acc,sx:parent.sx+Math.sin(((acc+turn)*-Math.PI/180))*10,sy:parent.sy+Math.cos(((acc+turn)*-Math.PI/180))*10,r:10,visible:true,mass:2,dmg:dmg,life:145,hit:false,parent:parent}
+
+
+			newLas={x:parent.x,y:parent.y,w:pwidth,h:12,noCollide:true,sprite:sprite,dist:1,type:"laser",t:turn-180+acc,sx:parent.sx+Math.sin(((acc+turn)*-Math.PI/180))*bulletSpeed,sy:parent.sy+Math.cos(((acc+turn)*-Math.PI/180))*bulletSpeed,r:10,visible:true,mass:2,dmg:dmg,life:life,hit:false,parent:parent,lasType:type}
 
 		
 			return entities.push(newLas)}
+
+function checkLidar(){
+lctx.clearRect(0,0,1000,1000)
+const angleStep = 0.5;
+const totalFOV = settings.rayCount * angleStep; // e.g., 36 rays * 2.5 = 90 degrees
+const startAngleOffset = totalFOV / 2; // To center the spread
+
+for (let i12 = 0; i12 < settings.rayCount; i12++) {
+    // 3. Fix Angle: Start at (trueTurn - half FOV) and increment
+    // Note: We use (i12 + 0.5) to sample the center of each "sector"
+    let currentAngleDegrees = (trueTurn - startAngleOffset) + (i12 * angleStep);
+    let rayAngle = -currentAngleDegrees * (Math.PI / 180);
+    
+    let ray = newRay(drone.x, drone.y, rayAngle);
+
+    // 4. Fix Color: Use Math.max to prevent negative brightness values
+    let brightness = Math.max(0, 50 - (ray.dist / 15));
+	 if (ray.hit){brightness=Math.max(10,brightness)}
+	 hue=0
+	 sat=0
+	 if (ray.obj&&ray.obj.type=="fighterDrone"){sat=100;}
+if (ray.obj&&ray.obj.type=="laser"){sat=100;hue=20;}
+    lctx.fillStyle = hsvToRgb(hue,sat, brightness);
+
+    // 5. Fix Position: Calculate X and Width to fill the canvas exactly
+    let barWidth = (lidar.width) / settings.rayCount;
+    let xPos = i12 * barWidth;
+    
+    // We add a tiny +1 to barWidth to prevent "seams" between bars
+    lctx.fillRect(xPos, 0, barWidth + 1, 10);
+}
+lctx.fillStyle="white"
+lctx.fillRect(lidar.width/2,0,1,5)
+}
 
 //are we done yet??
 function checkJobs() {
@@ -2935,7 +3249,11 @@ player.jobs.splice(i,1)
 }
 }
 }
-
+function giveUpgrade(upgrade) {
+targetSys=systems[upgrade.c]
+targetSys.types.push(upgrade)
+}
+adaptWindow()
 tick(); 
 </script>
 
