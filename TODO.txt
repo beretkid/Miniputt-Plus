@@ -1895,3 +1895,11 @@ add realtime shading
 add impulse engine varients, engines that are relatively weak but are  able to preform short quick burst maneuvers, perfect for dodging.
 
 for lazyness purpouses, we can use dropdown menu's for part selection purpouses
+
+
+
+nums=[];for (let i = 0; i < 100; i++) {nums.push(genSV2(0,100))};console.log(calculateMean(nums))
+
+Add LIDAR-like vision as a bar behind the ship
+run about.... ehhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh???????????????????????
+2 ticks/cycles with a maximum angle of 75 degrees with a total of 50 rays
