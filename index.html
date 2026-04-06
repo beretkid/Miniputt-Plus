@@ -35,7 +35,8 @@
 <img hidden=true src="station.png" id="stationSprite">
 <img hidden=true src="debris2.png" id="d2">
 <img hidden=true src="gchaff.png" id="gchaff">
-
+<img hidden=true src="warning.png" id="warningImage">
+<img hidden=true src="box.png" id="spriteBox">
 <img hidden=true src="PodOverlay/cooler.png" id="dcooling">
 <img hidden=true src="PodOverlay/thruster.png" id="dthruster">
 <img hidden=true src="PodOverlay/secondarySystem.png" id="dsecondary">
@@ -181,7 +182,7 @@
   <div></div>
   <text>Paint Brightness</text><input type="range" min="0" max="200" id="pColorPickerBrightness" value=100>
   <div></div>
-    <text>Paint Saturation</text><input type="range" min="0" max="200" id="pColorPickerSaturation" value=100>
+    <text>Paint Saturation</text><input type="range" min="0" max="100" id="pColorPickerSaturation" value=100>
 	 <div></div>
     <text>Paint Contrast</text><input type="range" min="0" max="200" id="pColorPickerContrast" value=100>
 	 <div></div>
@@ -193,6 +194,13 @@
 <img src="Paints/flame.png" id="paintFlame" onClick="player.paint.type=document.getElementById('paintFlame')">
 <img src="Paints/twoTone.png" id="paintTwoTone" onClick="player.paint.type=document.getElementById('paintTwoTone')">
 <img src="Paints/fading.png" id="paintFading" onClick="player.paint.type=document.getElementById('paintFading')">
+<img src="Paints/grid.png" id="paintGrid" onClick="player.paint.type=document.getElementById('paintGrid')">
+<img src="Paints/stripes.png" id="paintStripes" onClick="player.paint.type=document.getElementById('paintStripes')">
+<img src="Paints/checkers.png" id="paintCheckerboard" onClick="player.paint.type=document.getElementById('paintCheckerboard')">
+<img src="Paints/blips.png" id="paintBlips" onClick="player.paint.type=document.getElementById('paintBlips')">
+<img src="Paints/stripe.png" id="paintStripe" onClick="player.paint.type=document.getElementById('paintStripe')">
+<img src="Paints/splatter.png" id="paintSplatter" onClick="player.paint.type=document.getElementById('paintSplatter')">
+<img src="Paints/shattered.png" id="paintShattered" onClick="player.paint.type=document.getElementById('paintShattered')">
   </div>
 
    <div hidden=true style="top:0%;left:0%;position:absolute;width:100%;height:100%;">
@@ -245,6 +253,30 @@ var rock1 = document.getElementById("rock1")
 var selectedSys
 var gFree = document.getElementById("gFree")
 var laserSprite = document.getElementById("laserSprite")
+function getSide(from, to, point) {
+    // Formula: (x2 - x1)(yP - y1) - (y2 - y1)(xP - x1)
+    return (to.x - from.x) * (point.y - from.y) - (to.y - from.y) * (point.x - from.x);
+}
+
+function checkLine(from,to,depth,right) {
+t=false
+current={x:from.x,y:from.y,dir:pointAt(to.x,to.y,from.x,from.y)}
+dist=getDist(from.x,from.y,to.x,to.y)
+dir2 = pointAt(from.x,from.y,to.x,to.y)
+dist2=getDist(from.x,from.y,drone.x,drone.y)
+tx2=Math.min(Math.max(Math.sin(dir2)*dist2,Math.min(from.x,to.x)),Math.max(from.x,to.x))
+ty2=Math.min(Math.max(Math.cos(dir2)*dist2,Math.min(from.y,to.y)),Math.max(from.y,to.y))
+dist3=getDist(tx2,ty2,drone.x,drone.y)
+
+side = Math.sign(getSide(from,to,drone))*1
+if (dist3<depth){hit=true}else{hit=false}
+
+
+if (side<0){return {right:false,left:true,dir:-dir2,side:side,hit:hit}}
+if (side>0){return {right:true,left:false,dir:-dir2,side:side,hit:hit}}
+}
+
+
 function changeCatagory(cat){
 selectedCatagory=cat
 itemsList.innerHTML=""
@@ -332,7 +364,7 @@ const corruptionSymbols=["#","*","%","$","_","!"]
 const corruptionSymbolsCrit="!@#$%^&*()~`+=-_{}|[]\:;'/.,?><QWERTYUIOPASDFGHJKLZXCVBNM1234567890 ".split('').push("ERR","")
 const cOff=2
 //start at 10000
-const settings={generateField:true,runOutOfView:true,renderDist:w*h,cameraChase:true,paused:false,hardPaused:false,drawFOV:false,lightFalloff:4,conSize:1.5,gameSpeed:10,screenDarkness:50,notifEnabled:true,astroidsCollide:true,lazySV:false,freindlyDrones:false,lasersHurt:true,sharpShooterDrones:false,aimLaser:false,showTD:false,slowLag:false,indClean:false,hivisLasers:true,lineSize:7,multiplayer:true,canvready:false,minimap:true,lidar:false,rayCount:175,rayRadius:10,renderBackground:true,showGUI:true};
+const settings={generateField:true,runOutOfView:true,renderDist:w*h,cameraChase:true,paused:false,hardPaused:false,drawFOV:false,lightFalloff:4,conSize:1.5,gameSpeed:10,screenDarkness:50,notifEnabled:true,astroidsCollide:true,lazySV:false,freindlyDrones:false,lasersHurt:true,sharpShooterDrones:false,aimLaser:false,showTD:false,slowLag:false,indClean:false,hivisLasers:true,lineSize:7,multiplayer:true,canvready:false,minimap:true,lidar:false,rayCount:175,rayRadius:10,renderBackground:true,showGUI:true,renderHoles:false};
 var rkp = false
 var zd = false
 var spin = 0
@@ -345,6 +377,7 @@ var pColorPicker=document.getElementById('pColorPicker')
 var pColorPickerBrightness=document.getElementById('pColorPickerBrightness')
 var pColorPickerSaturation=document.getElementById('pColorPickerSaturation')
 var pColorPickerContrast=document.getElementById('pColorPickerContrast')
+var warningImage =document.getElementById('warningImage')
 canvas.width = window.innerWidth/settings.conSize
 canvas.height = window.innerHeight
 map.width = 450
@@ -372,7 +405,7 @@ var podDam3 = document.getElementById("podDamage3")
 var paint = {full:document.getElementById("paintFull"),eroded:document.getElementById("paintEroded")}
 
 var sbdown=false
-var boxTop = document.getElementById("BoxTop")
+var boxSprite = document.getElementById("spriteBox")
 var boxSide = document.getElementById("BoxSide")
 var mouseX; 
 var mouseY; 
@@ -407,10 +440,10 @@ bCan.width = window.innerWidth/settings.conSize
 bCan.height = window.innerHeight;
 var player = {hp:100,air:100,repairCharges:8,dizzy:0,rearCD:0,cameraThrow:0,cameraThrowX:0,cameraThrowY:0,cCon:false,droneKills:0,credits:1000,jobs:[],driving:true,visionRadius:45,docked:false,dCool:0,typing:false,dockedStation:null,upgrades:{controlPanel:{installed:true,cost:500,des:"Ctrl_panel"}},inCrisis:false,astroidKills:0,fired:false,pendingWarnings:[],speed:0.00165,living:Date.now(),paint:{using:true,type:paint.full,color:0,saturation:100,brightness:100,contrast:100}}
 var xo
-var drone = {x:50,y:0,t:0,w:32,h:32,r:0,hp:100,sx:0,sy:0,r:0,mass:1,brakes:false}
+var drone = {x:50,y:0,t:0,w:32,h:32,r:0,hp:100,sx:0,sy:0,r:0,mass:1,brakes:false,boostCool:0}
 var turnSpeed=0
 var MenuLayout = 0
-var upgradeDatabase={heavyArmor:{dmgRes:12,c:"armor",name:"Heavy Armor"},martianArmor:{dmgRes:7,c:"armor",name:"Vicerite Armor Armor" },heavyLaser:{dmgRes:2,c:"laser",name:"Proton Missile",projType:"seekerOrb"},boostDrive:{dmgRes:1,c:"secondary",name:"Boost Drive"},boostDrive:{dmgRes:1,c:"secondary",name:"ProtonSeeker"},boostDrive:{dmgRes:1,c:"secondary",name:"Boost Drive"},pusher:{dmgRes:1,c:"laser",name:"Push Cannon",projType:"push",dmg:0},gravChaff:{dmgRes:1,c:"secondary",name:"Gravity Chaffs"}}
+var upgradeDatabase={heavyArmor:{dmgRes:12,c:"armor",name:"Heavy Armor"},martianArmor:{dmgRes:7,c:"armor",name:"Vicerite Armor Armor" },heavyLaser:{dmgRes:2,c:"laser",name:"Proton Missile",projType:"seekerOrb"},boostDrive:{dmgRes:1,c:"secondary",name:"Boost Drive"},boostDrive:{dmgRes:1,c:"secondary",name:"ProtonSeeker"},boostDrive:{dmgRes:1,c:"secondary",name:"Boost Drive"},pusher:{dmgRes:1,c:"laser",name:"Push Cannon",projType:"push",dmg:0},gravChaff:{dmgRes:1,c:"secondary",name:"Gravity Chaffs"},lightLas:{dmgRes:1,heatAdd:1,dmg:0.00001,c:"laser",name:"Light laser"},ram:{dmgRes:13,c:"laser",name:"Ram Plate"}}
 //0=home
 //1=station
 //2=personal stats
@@ -661,6 +694,10 @@ newButt.ref=i7
 newButt.addEventListener('click', (evnt) => {
 //apply new type
 systems[selectedSys].typeUsed=newButt.ref
+//reset things
+//systems[selectedSys]=resetSys()[selectedSys]
+
+//apply other things
 for (i9 in systems[selectedSys]) {
 
 if (systems[selectedSys].types[newButt.ref][i9]){
@@ -764,7 +801,7 @@ important=true
 tx = x
 ty = y
 }
-entities.push({x:x,y:y,w:22,h:22,sprite:sprite,dist:1,type:"fighterDrone",t:0,sx:0,sy:0,t:0,r:12,subtype:subtype,visible:true,mass:2,health:100,targ:{x:tx,y:ty,t:0,thrust:0,important:important,memory:10},tt:0,cool:0,locked:false,bOff:gt+random(-100,100),dieSpinDir:random(-1,1,0),health:60,fireCool:fc,dmg:dmg,acc:acc,task:"idle",strafing:false})
+entities.push({x:x,y:y,w:22,h:22,sprite:sprite,dist:1,type:"fighterDrone",t:0,sx:0,sy:0,t:0,r:12,subtype:subtype,visible:true,mass:2,health:100,targ:{x:tx,y:ty,t:0,thrust:0,important:important,memory:10},tt:0,cool:0,locked:false,bOff:gt+random(-100,100),dieSpinDir:random(-1,1,0),health:60,fireCool:fc,dmg:dmg,acc:acc,task:"idle",strafing:false,holes:[]})
 
 }
 function sendDrone() {
@@ -1047,10 +1084,10 @@ pushConMsg("Default: "+curr3.default)
 }else{
 pushConMsg("DES: "+systems[i8].des)
 pushConMsg("SYSID: " +'"'+i8+'"')
-pushConMsg("EFF: "+systems[i8].eff+"%")
-pushConMsg("HEAT: "+systems[i8].heat+"C")
+pushConMsg("EFF: "+Math.round(systems[i8].eff)+"%")
+pushConMsg("HEAT: "+Math.round(systems[i8].heat)+"C")
 pushConMsg("ENABLED: "+systems[i8].on)
-pushConMsg("DAMAGE: "+systems[i8].dam+"%")
+pushConMsg("DAMAGE: "+Math.round(systems[i8].dam)+"%")
 pushConMsg("VARIABLES:")
 for (i17 in systems[i8].settings) {
 pushConMsg(systems[i8].settings[i17].des.toUpperCase()+":"+systems[i8].settings[i17].val)
@@ -1095,10 +1132,10 @@ if (checkTxtMatch(i8,arg2)) {
 found=true
 pushConMsg("DES: "+systems[i8].des)
 pushConMsg("SYSID: " +'"'+i8+'"')
-pushConMsg("EFF: "+systems[i8].eff+"%")
-pushConMsg("HEAT: "+systems[i8].heat+"C")
+pushConMsg("EFF: "+Math.round(systems[i8].eff)+"%")
+pushConMsg("HEAT: "+Math.round(systems[i8].heat)+"C")
 pushConMsg("ENABLED: "+systems[i8].on)
-pushConMsg("DAMAGE: "+systems[i8].dam+"%")
+pushConMsg("DAMAGE: "+Math.round(systems[i8].dam)+"%")
 }
 }
 if(!found) {
@@ -1144,7 +1181,7 @@ pushConMsg("")
 }
 }}
 function resetSys(sys) {
-theThing={engine:{dam:0,on:true,des:"Type 1 Engine",heat:0,eff:100,maxHeat:500,insulation:10,pwrUsg:-250,minHeat:-100,missing:false,dmgRes:10,baseUsg:-250,settings:[{des:"flow",val:50,default:50,min:0,max:150}]},cooling:{dam:0,on:true,des:"Cooling System",heat:20,eff:100,maxHeat:150,insulation:0,pwrUsg:50,minHeat:-100,missing:false,dmgRes:1},tank:{dam:0,on:true,des:"Plasma Tank",heat:20,eff:100,maxHeat:125,insulation:0,pwrUsg:0,minHeat:-100,missing:false,baseUsg:0,settings:[],dmgRes:1},gyroscope:{dam:0,on:true,des:"PuttTech Type 3 Gyroscope",heat:20,eff:100,maxHeat:200,insulation:0,pwrUsg:35,minHeat:-100,missing:false,dmgRes:7,baseUsg:35,settings:[{des:"speed",val:50,default:50,min:0,max:150}]},sideThrust:{dam:0,on:true,des:"Side Thrusters",heat:20,eff:100,maxHeat:1000,baseUsg:25,settings:[{des:"flow",val:50,default:50,min:0,max:150}],insulation:10,pwrUsg:25,minHeat:-100,missing:false,dmgRes:1},thruster:{dam:0,on:true,des:"Main Thrusters",heat:20,eff:100,maxHeat:1000,insulation:10,baseUsg:15,settings:[{des:"flow",val:50,default:50,min:0,max:150}],pwrUsg:50,minHeat:-100,missing:false,dmgRes:1},shipComputer:{dam:0,on:true,des:"Ship Computer",heat:0,eff:100,maxHeat:125,insulation:5,pwrUsg:15,minHeat:-200,baseUsg:15,settings:[],missing:false,dmgRes:1},cockpit:{dam:0,on:true,des:"Cockpit",heat:20,eff:100,maxHeat:80,baseUsg:15,settings:[{des:"lifesupport",val:50,min:0,max:150,default:50}],insulation:5,pwrUsg:15,minHeat:-200,missing:false,dmgRes:1},laser:{dam:0,on:true,projType:"default",des:"Mk1 Scout laser",type:"basic",heat:20,eff:100,maxHeat:135,baseUsg:25,insulation:5,pwrUsg:25,minHeat:-200,missing:false,dmgRes:3,cd:0,settings:[{des:"rate",val:50,min:0,max:150,default:50}]},armor:{dam:0,on:true,des:"Armor Plating",heat:20,eff:100,maxHeat:305,insulation:0,pwrUsg:0,minHeat:-100,missing:false,baseUsg:0,settings:[],dmgRes:8,types:[{name:"Stock"},{name:"Nantite Armor"}]},secondary:{dam:0,on:true,des:"Secondary System",heat:20,eff:100,maxHeat:250,baseUsg:0,settings:[{des:"flow",val:50,default:50,min:0,max:150}],insulation:10,pwrUsg:0,minHeat:-100,missing:false,dmgRes:1}}
+theThing={engine:{dam:0,on:true,des:"Type 1 Engine",heat:0,eff:100,maxHeat:500,insulation:10,pwrUsg:-250,minHeat:-100,missing:false,dmgRes:10,baseUsg:-250,settings:[{des:"flow",val:50,default:50,min:0,max:150}]},cooling:{dam:0,on:true,des:"Cooling System",heat:20,eff:100,maxHeat:150,insulation:0,pwrUsg:50,minHeat:-100,missing:false,dmgRes:1},tank:{dam:0,on:true,des:"Plasma Tank",heat:20,eff:100,maxHeat:125,insulation:0,pwrUsg:0,minHeat:-100,missing:false,baseUsg:0,settings:[],dmgRes:1},gyroscope:{dam:0,on:true,des:"PuttTech Type 3 Gyroscope",heat:20,eff:100,maxHeat:200,insulation:0,pwrUsg:35,minHeat:-100,missing:false,dmgRes:7,baseUsg:35,settings:[{des:"speed",val:50,default:50,min:0,max:150}]},sideThrust:{dam:0,on:true,des:"Side Thrusters",heat:20,eff:100,maxHeat:1000,baseUsg:25,settings:[{des:"flow",val:50,default:50,min:0,max:150}],insulation:10,pwrUsg:25,minHeat:-100,missing:false,dmgRes:1},thruster:{dam:0,on:true,des:"Main Thrusters",heat:20,eff:100,maxHeat:1000,insulation:10,baseUsg:15,settings:[{des:"flow",val:50,default:50,min:0,max:150}],pwrUsg:50,minHeat:-100,missing:false,dmgRes:1},shipComputer:{dam:0,on:true,des:"Ship Computer",heat:0,eff:100,maxHeat:125,insulation:5,pwrUsg:15,minHeat:-200,baseUsg:15,settings:[],missing:false,dmgRes:1},cockpit:{dam:0,on:true,des:"Cockpit",heat:20,eff:100,maxHeat:80,baseUsg:15,settings:[{des:"lifesupport",val:50,min:0,max:150,default:50}],insulation:5,pwrUsg:15,minHeat:-200,missing:false,dmgRes:1},laser:{dam:0,heatAdd:9,on:true,projType:"default",des:"Mk1 Scout laser",type:"basic",heat:20,eff:100,maxHeat:135,baseUsg:25,dmg:1,insulation:5,pwrUsg:25,minHeat:-200,missing:false,dmgRes:3,cd:0,settings:[{des:"rate",val:50,min:0,max:150,default:50}]},armor:{dam:0,on:true,des:"Armor Plating",heat:20,eff:100,maxHeat:305,insulation:0,pwrUsg:0,minHeat:-100,missing:false,baseUsg:0,settings:[],dmgRes:8,types:[{name:"Stock"}]},secondary:{dam:0,on:true,des:"Secondary System",heat:20,eff:100,maxHeat:250,baseUsg:0,settings:[{des:"flow",val:50,default:50,min:0,max:150}],insulation:10,pwrUsg:0,minHeat:-100,missing:false,dmgRes:1}}
 for (i in theThing) {
 theThing[i].usg=0
 if(!theThing[i].types){theThing[i].types=[{name:"Stock",dmgRes:theThing[i].dmgRes}]
@@ -1268,7 +1305,8 @@ var repairButton = document.getElementById("repairButton")
 var amntSel = document.getElementById("amntSel")
 
 
-var store = [{des:"Plasma[FAAE]",amnt:359345,cost:3,cd:"fuel",catagory:"consumables"},{des:"Heavy_Armor",amnt:1,cost:750,cd:"hvyArmor",ref:"heavyArmor",upgrade:true,catagory:"upgrades"},{des:"Proton_Seeker",amnt:1,cost:500,cd:"heavyLaser",ref:"heavyLaser",upgrade:true,catagory:"upgrades"},{des:"Repairs",amnt:20034,cost:200,cd:"repair",catagory:"services"},{des:"RepairKits",amnt:276,cost:72,cd:"repairCharge",catagory:"consumables"},{des:"Vicerite_Armor",amnt:2,cost:650,cd:"martianArmor",ref:"martianArmor",upgrade:true,catagory:"upgrades"},{des:"Boost_Drive",amnt:2,cost:400,cd:"boostDrive",ref:"boostDrive",upgrade:true,catagory:"upgrades"},{des:"Push_Cannon",amnt:1,cost:500,cd:"pusher",ref:"pusher",upgrade:true,catagory:"upgrades"},{des:"Gravity_Chaff",amnt:1,cost:500,cd:"gravChaff",ref:"gravChaff",upgrade:true,catagory:"upgrades"}]
+var store = [{des:"Plasma[FAAE]",amnt:359345,cost:3,cd:"fuel",catagory:"consumables"},{des:"Heavy_Armor",amnt:1,cost:750,cd:"hvyArmor",ref:"heavyArmor",upgrade:true,catagory:"upgrades"},{des:"Proton_Seeker",amnt:1,cost:500,cd:"heavyLaser",ref:"heavyLaser",upgrade:true,catagory:"upgrades"},{des:"Repairs",amnt:20034,cost:200,cd:"repair",catagory:"services"},{des:"RepairKits",amnt:276,cost:72,cd:"repairCharge",catagory:"consumables"},{des:"Vicerite_Armor",amnt:2,cost:650,cd:"martianArmor",ref:"martianArmor",upgrade:true,catagory:"upgrades"},{des:"Boost_Drive",amnt:2,cost:400,cd:"boostDrive",ref:"boostDrive",upgrade:true,catagory:"upgrades"},{des:"Push_Cannon",amnt:1,cost:500,cd:"pusher",ref:"pusher",upgrade:true,catagory:"upgrades"},{des:"Gravity_Chaff",amnt:1,cost:500,cd:"gravChaff",ref:"gravChaff",upgrade:true,catagory:"upgrades"},{des:"Ram_Plate",amnt:1,cost:500,cd:"ram",ref:"ram",upgrade:true,catagory:"upgrades"},
+{des:"Light_Laser",amnt:1,cost:500,cd:"lightLas",ref:"lightLas",upgrade:true,catagory:"upgrades"}]
 const easingAmount = 0.05; 
 
 
@@ -1386,19 +1424,21 @@ document.addEventListener('mousemove', (event) => {
 	 mouseDir = (((Math.atan2(event.clientY - h/2, event.clientX - w/2) * 180 / Math.PI)+90)+trueTurn)
 	 })
 document.addEventListener('mousedown', (event) => {
-	 mouseX = event.x
-     mouseY = event.y
-	 mouseDir = (((Math.atan2(event.clientY - h/2, event.clientX - w/2) * 180 / Math.PI)+90)+trueTurn)
-if (player.rearCD==0){
-	player.rearCD=45
+	if (false){
+		mouseX = event.x
+		mouseY = event.y
+		mouseDir = (((Math.atan2(event.clientY - h/2, event.clientX - w/2) * 180 / Math.PI)+90)+trueTurn)
+	if (player.rearCD==0){
+		player.rearCD=45
 
-if (event.target==canvas||event.button==0){
+	if (event.target==canvas||event.button==0){
 	
-dir=mouseDir
+		dir=mouseDir
 
-console.log(dir)
+	console.log(dir)
 if (!settings.hardPaused){
 fireLas(drone,3,10,dir,systems.laser.projType)
+}
 }
 }
 }
@@ -1466,7 +1506,7 @@ pushMsg("Repaired "+rng+"Dmg ("+player.repairCharges+"/8)")
 }
 }
 })
-var entities = [{x:75,y:97,w:150,h:150,sprite:p3,dist:9,type:"Planet",sx:0,sy:0,t:0,r:64,grav:100,visible:true,mass:100000}]
+var entities = [{x:75,y:97,w:150,h:150,sprite:p3,dist:9,type:"Planet",sx:0,sy:0,t:0,r:64,grav:100,visible:true,mass:100000},{x:75,y:97,w:64,h:64,sprite:boxSprite,dist:1,type:"box",noCollide:true,sx:0,sy:0,t:0,r:64,visible:true,mass:10,lines:[{x1:32,y1:32,x2:-64,y2:32}]}]
 var station={x:0,y:0,w:128,h:128,sprite:stationSprite,dist:1,des:"Alpha Beta Station 78",type:"station",store:store,jobs:[{name:"Astroid Clearing",reward:32},{name:"Stinkmaster hiring"}],t:0,sx:0,sy:0,t:0,r:44,visible:true,mass:10000000,collisionPoints:[{x:45,y:0,r:34},{x:-45,y:0,r:34},{x:0,y:-45,r:34},{x:0,y:45,r:34}],fuel:100000}
 entities.push(station)
 
@@ -1475,7 +1515,7 @@ const fighterDroneTemplate={x:0,y:0,w:22,h:22,sprite:fighterSprite,dist:1,type:"
 //jobs will depend on the place your in
 //#BigMoney$$$
 function flash(x,y) {
-entities.push({x:x,y:y,w:random(3,10),h:random(3,10),sprite:document.getElementById("flash"),dist:1.0000001,type:"debris",sx:0,sy:0,t:random(-180,180),r:64,grav:100,visible:true,mass:1,life:5,nocollide:true})
+entities.push({x:x,y:y,w:random(3,10),h:random(3,10),sprite:document.getElementById("flash"),dist:1.0000001,type:"debris",sx:0,sy:0,t:random(-180,180),r:64,grav:100,visible:true,mass:1,life:5,noCollide:true})
 }
 function regenJob(amnt,seed) {
 station.jobs = []
@@ -1522,7 +1562,8 @@ drone.y = station.y+ 100
 var orbSpeed=1000
 function regenField(fieldRadius,seed) {
 densePoints=[]
-worldType={orbit:(Math.floor(genSV2(1,9,seed,i*41))==3),sorted:(Math.floor(genSV2(1,9,seed,i*422))==4),dronefield:(Math.floor(genSV2(1,9,seed,i*413))==3)}
+//orbit is disabled for bug reasons
+worldType={orbit:(Math.floor(genSV2(1,9,seed,i*41))==-4),sorted:(Math.floor(genSV2(1,9,seed,i*422))==4),dronefield:(Math.floor(genSV2(1,9,seed,i*413))==3)}
 
 dPointsAmnt=Math.round(genSV2(1,5,seed,i*43))
 station.sx = 0 
@@ -1608,7 +1649,7 @@ console.log(nsx,rDir,orbSpeed)
 //check if elligable for moving to a dense spot
 
 
-entities.push({x:rx,y:ry,w:size,h:size,sprite:sprite,dist:1,type:"astroid",sx:nsx,sy:nsy,t:randomT,r:size,visible:true,mass:size/10,health:size/1})}
+entities.push({x:rx,y:ry,w:size,h:size,sprite:sprite,dist:1,type:"astroid",sx:nsx,sy:nsy,t:randomT,r:size,visible:true,mass:size/10,health:size/1,holes:[]})}
 //evil, fucked up place
 drones = Math.floor(genSV2(4,20,seed,i*81))
 if(worldType.dronefield){
@@ -1931,6 +1972,13 @@ menuHolder.hidden = !menuHolder.hidden
 			settings.aimLaser=!settings.aimLaser
 			
 		  }
+		  		  	  		  	if (kc == 16 && drone.boostCool<0) {
+
+			drone.sx=drone.sx+ (Math.sin((trueTurn*-1) * Math.PI/180)*(2)/1)
+			drone.sy=drone.sy+ (Math.cos((trueTurn*-1) * Math.PI/180)*(2)/1)
+			drone.boostCool=300
+			systems.engine.heat+=100
+		  }
 		  		  		  	  		  	if (kc == 74) {
 
 			settings.showGUI=!settings.showGUI
@@ -1945,7 +1993,7 @@ menuHolder.hidden = !menuHolder.hidden
 		  //secondary system functions
 		  if (systems.secondary.types[systems.secondary.typeUsed]==upgradeDatabase.boostDrive){
 			drone.sx=drone.sx+ (Math.sin((trueTurn*-1) * Math.PI/180)*(2)/1)
-drone.sy=drone.sy+ (Math.cos((trueTurn*-1) * Math.PI/180)*(2)/1)
+			drone.sy=drone.sy+ (Math.cos((trueTurn*-1) * Math.PI/180)*(2)/1)
 }
 		  if (systems.secondary.types[systems.secondary.typeUsed]==upgradeDatabase.gravChaff){
 newMove={x:drone.x,y:drone.y}
@@ -2100,7 +2148,7 @@ drone.sy+= Math.cos(oppose)*(0.05*dist/15000)
 
 }
 
-
+drone.boostCool-=1
 player.rearCD=Math.max(0,player.rearCD-1)
 player.fired=false
 sx=drone.sx
@@ -2380,6 +2428,7 @@ drone.sx+=(Math.sin(gravDir)*(curr.grav)/(distance*-100))
 drone.sy+=(Math.cos(gravDir)*(curr.grav)/(distance*-100))
 }
 }
+
 //gravitychaff shit
 if (curr.type=="gravChaff"){
 curr.life-=1
@@ -2571,7 +2620,7 @@ for (i0 in renderedEnts) {
 las=renderedEnts[i0]
 if(las!==curr){
 //gravitate twoards the gravity chaff 
-if (las.type=="gravChaff"){
+if (las.type=="gravChaff"&&curr.type!=="astroid"){
 
 gravDir=pointAt(curr.x,curr.y,las.x,las.y)
 distance=getDist(curr.x,curr.y,las.x,las.y)
@@ -2624,7 +2673,8 @@ curr.sy-=Math.cos(las.t*-Math.PI/180)*50/curr.mass
 }
 
 las.hit=true
-curr.health-=random(10,25)
+curr.holes.push({x:las.x-curr.x,y:las.y-curr.y,r:random(3,10)})
+curr.health-=las.dmg
 curr.sx-=Math.sin(las.t*-Math.PI/180)*0.1/curr.mass
 curr.sy-=Math.cos(las.t*-Math.PI/180)*0.1/curr.mass
 
@@ -2663,6 +2713,25 @@ collisionFollowThrough(drone,curr,{x:curr.x+colpoi.x,y:curr.y+colpoi.y,r:colpoi.
 }
 }
 }
+if (curr.lines) {
+
+for (i6 in curr.lines) {
+currLine=curr.lines[i6]
+
+line=checkLine({x:currLine.x1+curr.x,y:currLine.y1+curr.y},{x:currLine.x2+curr.x,y:currLine.y2+curr.y},30)
+
+if(line&&line.hit){
+console.log("OH GOD")
+add=0
+if (line.side>0){add=180}
+tweakedDir=(line.dir+(add*(Math.PI/180)))
+
+drone.sx+=Math.sin(tweakedDir)/10
+drone.sy+=Math.cos(tweakedDir)/10
+}
+}
+}
+
 
 if(checkCircle(drone, curr)&&curr.dist==1&&!curr.noCollide){
 collisionFollowThrough(drone,curr,{x:0,y:0,r:0})
@@ -2921,7 +2990,7 @@ ctx.filter = oldFilt
 				//add paint (MMmmMMmmMm)
 				if (player.paint.using){
 				oldFilt=ctx.filter
-				ctx.filter=`hue-rotate(${player.paint.color}deg) saturate(${player.paint.saturation}%) brightness(${player.paint.brightness*(2-((player.paint.saturation/100)))}%)  contrast(${player.paint.contrast}%)`
+				ctx.filter=`hue-rotate(${player.paint.color*2}deg) saturate(${player.paint.saturation}%) brightness(${(player.paint.brightness*(2-((player.paint.saturation/100))))}%)  contrast(${player.paint.contrast}%)`
 
 				ctx.drawImage(player.paint.type,-64,-64,128,128)
 				ctx.filter = oldFilt
@@ -3041,13 +3110,27 @@ for (i3 in systems) {
   avrgHeat=Math.abs(heatProbe.reduce((a, b) => a + b, 0)/heatProbe.length)
   avrgDamage=Math.abs(overallHealth.reduce((a, b) => a + b, 0)/overallHealth.length)
 if(settings.showGUI&&(gt%10)==1) {
-lctx.clearRect(0,0,w,h-lH)
+
+
+lctx.filter=``
+lctx.clearRect(0,0,w,h)
+if (player.air<90){
+lctx.filter=`opacity(${Math.abs(Math.sin(gt)*20)}%)`
+lctx.fillStyle="red"
+lctx.fillRect(0,0,w,h)
+lctx.filter=`opacity(100%)`
+for (let i12 = 0; i12 < 5; i12++) {
+
+lctx.filter=``
+lctx.drawImage(warningImage,random(0,w),random(0,h))
+}
+}
 for (i2 in systems) {
 c=systems[i2]
 
 if (String(i2)!=="tank"&&document.getElementById("d"+i2)){
 
-lctx.filter=`hue-rotate(${Number(c.dam)*-1}deg) saturate(${100+c.dam}%)`
+lctx.filter=`hue-rotate(${(Number(c.dam)*-1)^2}deg) saturate(${100+c.dam}%)`
 
 if (c.dam>80){
 
@@ -3143,7 +3226,7 @@ curr.dam +=0.1
 }
 if(curr==laser) {
 if(player.fired){
-laser.heat+=9
+laser.heat+=laser.heatAdd
 
 }
 }
@@ -3241,13 +3324,24 @@ realRelativeSpeed = getDist(curr.sx,curr.sy,victim.sx,victim.sy)
 
 
 
-if(realRelativeSpeed>0.2&&!collided){
-if (victim==drone){
-giveDamage(relativeSpeed*(curr.mass/relativeSpeed),Math.ceil(relativeSpeed))
-}else{if(victim.type=="fighterDrone"||victim.type=="astroid"){
-victim.health-=relativeSpeed*(curr.mass/relativeSpeed)
+if(relativeSpeed>0.2&&!collided&&curr.type!=="station"){
 
-}}
+if ((victim==drone||curr==drone)&&laser.types[laser.typeUsed]==upgradeDatabase.ram){ramMult=15}else{ramMult=1}
+console.log(relativeSpeed,relativeSpeed*(curr.mass/relativeSpeed)/ramMult)
+if (victim==drone){
+giveDamage(relativeSpeed*(curr.mass/relativeSpeed)/ramMult,Math.ceil(relativeSpeed))
+}
+if (curr==drone) {
+giveDamage(relativeSpeed*(victim.mass/relativeSpeed)/ramMult,Math.ceil(relativeSpeed))
+}
+
+
+if(victim.type=="fighterDrone"||victim.type=="astroid"){
+victim.health-=relativeSpeed*(curr.mass/relativeSpeed)*ramMult}
+if(curr.type=="fighterDrone"||curr.type=="astroid"){
+curr.health-=relativeSpeed*(victim.mass/relativeSpeed)*ramMult}
+
+
 
 
 
@@ -3337,7 +3431,18 @@ if (getDist(drone.x,drone.y,curr.x,curr.y)<(zoom/10)||curr.type=="bigMan") {
 				ctx.filter=ctx.filter+`opacity(${40+(Math.sin(gt/10)*10)+curr.hue}%)`
 				}
 				ctx.drawImage(curr.sprite,-curr.w/2,-curr.h/2,curr.w,curr.h)
-
+				if (curr.holes&&settings.renderHoles){
+				ctx.globalCompositeOperation = 'destination-out';
+				for (i10 in curr.holes){
+				ctx.beginPath()
+				ctx.arc(curr.holes[i10].x, curr.holes[i10].y, curr.holes[i10], 0, 2 * Math.PI, false);
+				ctx.stroke()
+				ctx.fill()
+				ctx.closePath()
+				
+				}
+				ctx.globalCompositeOperation = 'source-over';
+}
 				ctx.filter=oldfilt
 				}
 				}
@@ -3404,6 +3509,9 @@ mpClientTick()
 
 function fireLas(parent,acc,dmg,dir,type){
 turn = parent.t
+stop=false
+if (parent==drone&&laser.typeUsed=="ram"){stop=true}
+if (!stop){
 if(!type){type="basic"}
 
 if (parent.tt){turn=parent.tt}
@@ -3423,7 +3531,7 @@ if (type=="seekerOrb"){dmg+=35;life=500;bulletSpeed=2;pwidth=12;dmg+=75;pw=16;co
 			newLas={x:parent.x,y:parent.y,w:pwidth,h:12,noCollide:true,sprite:sprite,dist:1,type:"laser",t:turn-180+acc,sx:parent.sx+Math.sin(((acc+turn)*-Math.PI/180))*bulletSpeed,sy:parent.sy+Math.cos(((acc+turn)*-Math.PI/180))*bulletSpeed,r:10,visible:true,mass:mass,dmg:dmg,life:life,hit:false,parent:parent,lasType:type}
 
 		
-			return entities.push(newLas)}
+			return entities.push(newLas)}}
 
 function checkLidar(){
 lctx.clearRect(0,w-10,1000,1000)
@@ -3467,6 +3575,7 @@ c=player.jobs[i]
 if (c.target<player[c.stat]){
 player.credits+=c.reward
 pushMsg("Job complete!")
+pushConMsg("Job complete ("+c.reward+" Credits added.) ")
 player.jobs.splice(i,1)
 }
 
