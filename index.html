@@ -31,7 +31,7 @@
 <img hidden=true src="explosion.png" id="explosionSprite">
 <img hidden=true src="laser.png" id="laserSprite">
 <img hidden=true src="debris1.png" id="d1">
-<img hidden=true src="a3.png" id="a3">\
+<img hidden=true src="a3.png" id="a3">
 <img hidden=true src="station.png" id="stationSprite">
 <img hidden=true src="debris2.png" id="d2">
 <img hidden=true src="gchaff.png" id="gchaff">
@@ -172,6 +172,7 @@
   <div id="itemsList" style="top:10%;left:0%;width:45%;height:50%;overflow:auto;"></div>
  <div  id="UICreditsAmnt" style="">Credits</div>
  <input  id="amntSel" type="number" value=1>
+  <text  id="shopItemDesc">No Description found.</text>
   <div id="stat1" style="top:60%;left:35%;position:absolute;"></div>
    <div id="stat2" style="top:50%;left:35%;position:absolute;"></div>
   </div>
@@ -217,7 +218,7 @@
 
 
 
-<div style="position:absolute;background-color:#b3b3b3;z-index:6;width:175px;height:300px;top:50%;left:50%;border-style:inset;overflow:auto;"id="sysMenu">
+<div style="position:absolute;background-color:#b3b3b3;z-index:30;width:175px;height:300px;top:50%;left:50%;border-style:inset;overflow:auto;"id="sysMenu">
 </div>
 <div style="position:absolute;background-color:#b3b3b3;z-index:8;width:200px;height:100px;top:0%;left:0%;border-style:inset;overflow:auto;"id="sysSelectBox">
 <img src="power.png"id="powerSwitch" width=25 >
@@ -315,6 +316,7 @@ var c5 = document.getElementById("c5")
 var t1 = document.getElementById("t1")
 var t2 = document.getElementById("t2")
 var t3 = document.getElementById("t3")
+var itemDesc="No Description found."
 var t4 = document.getElementById("t4")
 var UIBuyButton = document.getElementById("buyButton")
 var rGib1 = document.getElementById("rGib1")
@@ -364,7 +366,7 @@ const corruptionSymbols=["#","*","%","$","_","!"]
 const corruptionSymbolsCrit="!@#$%^&*()~`+=-_{}|[]\:;'/.,?><QWERTYUIOPASDFGHJKLZXCVBNM1234567890 ".split('').push("ERR","")
 const cOff=2
 //start at 10000
-const settings={generateField:true,runOutOfView:true,renderDist:w*h,cameraChase:true,paused:false,hardPaused:false,drawFOV:false,lightFalloff:4,conSize:1.5,gameSpeed:10,screenDarkness:50,notifEnabled:true,astroidsCollide:true,lazySV:false,freindlyDrones:false,lasersHurt:true,sharpShooterDrones:false,aimLaser:false,showTD:false,slowLag:false,indClean:false,hivisLasers:true,lineSize:7,multiplayer:true,canvready:false,minimap:true,lidar:false,rayCount:175,rayRadius:10,renderBackground:true,showGUI:true,renderHoles:false};
+const settings={generateField:true,runOutOfView:true,renderDist:w*h,cameraChase:true,paused:false,hardPaused:false,drawFOV:false,lightFalloff:4,conSize:1.5,gameSpeed:10,screenDarkness:50,notifEnabled:true,astroidsCollide:true,lazySV:false,freindlyDrones:false,lasersHurt:true,sharpShooterDrones:false,aimLaser:false,showTD:false,slowLag:false,indClean:false,hivisLasers:true,lineSize:7,multiplayer:true,canvready:false,minimap:true,lidar:false,rayCount:175,rayRadius:10,renderBackground:true,showGUI:true,renderHoles:false,doLagmode:true};
 var rkp = false
 var zd = false
 var spin = 0
@@ -443,7 +445,7 @@ var xo
 var drone = {x:50,y:0,t:0,w:32,h:32,r:0,hp:100,sx:0,sy:0,r:0,mass:1,brakes:false,boostCool:0}
 var turnSpeed=0
 var MenuLayout = 0
-var upgradeDatabase={heavyArmor:{dmgRes:12,c:"armor",name:"Heavy Armor"},martianArmor:{dmgRes:7,c:"armor",name:"Vicerite Armor Armor" },heavyLaser:{dmgRes:2,c:"laser",name:"Proton Missile",projType:"seekerOrb"},boostDrive:{dmgRes:1,c:"secondary",name:"Boost Drive"},boostDrive:{dmgRes:1,c:"secondary",name:"ProtonSeeker"},boostDrive:{dmgRes:1,c:"secondary",name:"Boost Drive"},pusher:{dmgRes:1,c:"laser",name:"Push Cannon",projType:"push",dmg:0},gravChaff:{dmgRes:1,c:"secondary",name:"Gravity Chaffs"},lightLas:{dmgRes:1,heatAdd:1,dmg:0.00001,c:"laser",name:"Light laser"},ram:{dmgRes:13,c:"laser",name:"Ram Plate"}}
+var upgradeDatabase={heavyArmor:{dmgRes:12,c:"armor",name:"Heavy Armor"},martianArmor:{dmgRes:7,c:"armor",name:"Vicerite Armor Armor" },heavyLaser:{dmgRes:2,c:"laser",name:"Proton Missile",projType:"seekerOrb"},boostDrive:{dmgRes:1,c:"secondary",name:"Boost Drive"},boostDrive:{dmgRes:1,c:"secondary",name:"ProtonSeeker"},boostDrive:{dmgRes:1,c:"secondary",name:"Boost Drive"},pusher:{dmgRes:1,c:"laser",name:"Push Cannon",projType:"push",dmg:0},gravChaff:{dmgRes:1,c:"secondary",name:"Gravity Chaffs"},lightLas:{dmgRes:1,heatAdd:1,dmg:0.1,c:"laser",name:"Light laser"},spreadShot:{dmgRes:1,heatAdd:30,dmg:30,c:"laser",name:"Spreadshot Laser",projType:"shotgun"},ram:{dmgRes:13,c:"laser",name:"Ram Plate"},marsComputer:{dmgRes:1.4,sentient:true,c:"shipComputer",name:"Martian Computer"},ram:{dmgRes:13,c:"laser",name:"Ram Plate"}}
 //0=home
 //1=station
 //2=personal stats
@@ -469,6 +471,7 @@ console.log(obj)
 entities.splice(0,entities.length)
 entities.push(obj)
 }
+var lagmode=false
 var x
 var y
 var timeSinceLastMsg=0
@@ -484,6 +487,44 @@ var mpReady=false
 var mpcReady=false
 var mapsubtype=0
 var bkRendered=true
+//sentient computer lines, but you can just call me 'scom lines'
+var scomlines={limp:["I think somethings broken!","Can we use a repair kit or something please?","I think theres a chunk of me missing somewhere..","man that STILL hurts."],hurt:["Ow.","dodge it! dodge it!","That burns really badly","Oof","Taking damage..","OW!"],brainDamage:["I feel so dizzy..","something isnt right, i feel super off..","My brains hurting..","I feel like i can somehow vomit","Where are we again??"],lowFuel:["I'm hungry, can i get some food soon?","My fueltank hungers.","I'm hungry","Some more plasma would be nice"],lowAir:["Oh my god can you breahte in there??","Hold on dont die on me!","Hang in there, im trying to fix it!"],docked:["Finnaly, home again!","Oh! Can we take a break now while we're here?","Back home.","We're back allready?","Can i get some new upgrades? preferably martian parts?"],partAdded:["Always nice to try something new!","Feels nice!","Wish i had a mirror or something to see myself, i bet i look cool as hell!", "OOooOOo","The controls on this thing are weird","OoOOo shiny!"],badpartAdded:["Alittle crusty but im sure its fine.","How old is this?","Wait that works?","I guess you get what you paid for..","You arent going to install that, are yo- you are going to install that, ok."],idle:["Where are we going?","Whats the plan?","i was gonna say something, but i forgot.","Do you sometimes just look out at space?? i do"],die:["I DONT WANNA DI-","Oh god OH G-","Uh O-","NO! HElP M-","..Pleas-","STO-","Im sor-","Goodby-"],kill:["Got one!","Nice shot!","BOOM!","Nice!","Man that drone got anihalated!","Fireworks!!","We're so good at this", "thats one drone down.."],trySave:["That should buy you some more time! /%<>^cockpit/%"]}
+//make him occasionally run commands, like $job to check things,
+//command prefix is /%<>@las rate 10/%
+//new line prefix is /&
+var triedSave=0
+
+function scomSay(say="idle",chance=1){
+if(computer.sentient&&random(0,chance)==1){
+setTimeout(()=>{
+if (computer.dam>50&&say=="idle"){say="brainDamage"}
+if (avrgDamage>50&&say=="idle"){say="limp"}
+if (say=="trySave"){triedSave=1000}
+
+lines=scomlines[say]
+linesA=lines.length-1
+console.log(linesA,lines)
+line=lines[random(0,linesA)]
+line2=line.split('/%')
+fullLine=""
+for (i1 in line2){
+c=line2[i1]
+if (c.includes('<>')) {
+c=c.replace("<>", "");
+inTerm(c)
+
+}else{fullLine=fullLine+c}
+
+}
+console.log(line2)
+//output message, because yuh
+
+pushConMsg("$>"+fullLine)
+},random(120,400))
+}
+}
+
+
 var decos=[{sprite:b1,minSize:25,maxSize:75,odd:true},{sprite:b2,minSize:25,maxSize:75,odd:true},{sprite:b3,minSize:25,maxSize:75,odd:true},{sprite:b4,minSize:0,maxSize:2,odd:false}]
 //controller support
 window.addEventListener("gamepaddisconnected", (controller) => {
@@ -502,7 +543,7 @@ console.log(c)
 
 
 
-//register yourself to da web
+//register yourself to da worlwi web
 plrID=document.getElementById("MPplrID")
 if (settings.multiplayer) {
 
@@ -698,6 +739,7 @@ systems[selectedSys].typeUsed=newButt.ref
 //systems[selectedSys]=resetSys()[selectedSys]
 
 //apply other things
+scomSay("partAdded")
 for (i9 in systems[selectedSys]) {
 
 if (systems[selectedSys].types[newButt.ref][i9]){
@@ -715,7 +757,7 @@ if(mode==2) {
 newButt={ref:"gahhh"}
 
 itemsList.innerHTML=""
-
+document.getElementById("shopItemDesc").innerHTML=itemDesc
 for (i7 in station.store) {
 UICreditsAmnt.innerText="Credits: "+player.credits+"C"
 //check if there a button, if there isnt, make one.
@@ -747,6 +789,9 @@ if (lastSel){lastSel.style.backgroundColor="#d9d9d9"}
 src=evnt.srcElement
 console.log(src)
 selectedItem=String(src.ref)
+if (store[src.ref].desc){itemDesc=store[src.ref].desc}else{itemDesc="No description found."}
+
+
 src.style.backgroundColor="#6f77c7"
 lastSel=src
 // load layout
@@ -822,6 +867,7 @@ collected.push(arr[i15][String(value)])
 return cavrg(collected)
 }
 function debrisBoom(x,y) {
+if (!lagmode){
 for (let i16 = 0; i16 < dCount; i16++) {
 randSize=curr.r/random(4,7,0)
 newMove={x:curr.x+random(-1,1,0),y:curr.y+random(-1,1,0)}
@@ -831,8 +877,9 @@ sprite=document.getElementById("dd"+String(random(1,3)))
 entities.push({x:x,y:y,w:randSize,h:randSize,sprite:sprite,dist:1,type:"debris",sx:curr.sx+random(-1,1,0),sy:curr.sy+random(-1,1,0),t:drone.t,r:randSize,ts:turnSpeed+random(-10,10,0),life:randLife,noCollide:true,mass:0.1,sparky:true})
 }
 }
+}
 function debrisExplosion(x,y){
-if(settings.renderBackground){
+if(!lagmode){
 	dCount=random(2,6)
 	flash(curr.x,curr.y)
 for (let i16 = 0; i16 < dCount; i16++) {
@@ -1042,7 +1089,7 @@ reminder=i8
 repairing=true
 setTimeout(()=>{
 repairing=false
-rng2 = random(40,60)
+rng2 = random(40-(computer.dam/7),60+(computer.eff/7))
 systems[reminder].dam=Math.max(0,systems[reminder].dam-rng2)
 
 pushConMsg("System ["+String(reminder).toUpperCase()+"] repaired by "+String(rng2)+"%.")
@@ -1181,7 +1228,7 @@ pushConMsg("")
 }
 }}
 function resetSys(sys) {
-theThing={engine:{dam:0,on:true,des:"Type 1 Engine",heat:0,eff:100,maxHeat:500,insulation:10,pwrUsg:-250,minHeat:-100,missing:false,dmgRes:10,baseUsg:-250,settings:[{des:"flow",val:50,default:50,min:0,max:150}]},cooling:{dam:0,on:true,des:"Cooling System",heat:20,eff:100,maxHeat:150,insulation:0,pwrUsg:50,minHeat:-100,missing:false,dmgRes:1},tank:{dam:0,on:true,des:"Plasma Tank",heat:20,eff:100,maxHeat:125,insulation:0,pwrUsg:0,minHeat:-100,missing:false,baseUsg:0,settings:[],dmgRes:1},gyroscope:{dam:0,on:true,des:"PuttTech Type 3 Gyroscope",heat:20,eff:100,maxHeat:200,insulation:0,pwrUsg:35,minHeat:-100,missing:false,dmgRes:7,baseUsg:35,settings:[{des:"speed",val:50,default:50,min:0,max:150}]},sideThrust:{dam:0,on:true,des:"Side Thrusters",heat:20,eff:100,maxHeat:1000,baseUsg:25,settings:[{des:"flow",val:50,default:50,min:0,max:150}],insulation:10,pwrUsg:25,minHeat:-100,missing:false,dmgRes:1},thruster:{dam:0,on:true,des:"Main Thrusters",heat:20,eff:100,maxHeat:1000,insulation:10,baseUsg:15,settings:[{des:"flow",val:50,default:50,min:0,max:150}],pwrUsg:50,minHeat:-100,missing:false,dmgRes:1},shipComputer:{dam:0,on:true,des:"Ship Computer",heat:0,eff:100,maxHeat:125,insulation:5,pwrUsg:15,minHeat:-200,baseUsg:15,settings:[],missing:false,dmgRes:1},cockpit:{dam:0,on:true,des:"Cockpit",heat:20,eff:100,maxHeat:80,baseUsg:15,settings:[{des:"lifesupport",val:50,min:0,max:150,default:50}],insulation:5,pwrUsg:15,minHeat:-200,missing:false,dmgRes:1},laser:{dam:0,heatAdd:9,on:true,projType:"default",des:"Mk1 Scout laser",type:"basic",heat:20,eff:100,maxHeat:135,baseUsg:25,dmg:1,insulation:5,pwrUsg:25,minHeat:-200,missing:false,dmgRes:3,cd:0,settings:[{des:"rate",val:50,min:0,max:150,default:50}]},armor:{dam:0,on:true,des:"Armor Plating",heat:20,eff:100,maxHeat:305,insulation:0,pwrUsg:0,minHeat:-100,missing:false,baseUsg:0,settings:[],dmgRes:8,types:[{name:"Stock"}]},secondary:{dam:0,on:true,des:"Secondary System",heat:20,eff:100,maxHeat:250,baseUsg:0,settings:[{des:"flow",val:50,default:50,min:0,max:150}],insulation:10,pwrUsg:0,minHeat:-100,missing:false,dmgRes:1}}
+theThing={engine:{dam:0,on:true,des:"Type 1 Engine",heat:0,eff:100,maxHeat:500,insulation:10,pwrUsg:-250,minHeat:-100,missing:false,dmgRes:10,baseUsg:-250,settings:[{des:"flow",val:50,default:50,min:0,max:150}]},cooling:{dam:0,on:true,des:"Cooling System",heat:20,eff:100,maxHeat:150,insulation:0,pwrUsg:50,minHeat:-100,missing:false,dmgRes:1},tank:{dam:0,on:true,des:"Plasma Tank",heat:20,eff:100,maxHeat:125,insulation:0,pwrUsg:0,minHeat:-100,missing:false,baseUsg:0,settings:[],dmgRes:1},gyroscope:{dam:0,on:true,des:"PuttTech Type 3 Gyroscope",heat:20,eff:100,maxHeat:200,insulation:0,pwrUsg:35,minHeat:-100,missing:false,dmgRes:7,baseUsg:35,settings:[{des:"speed",val:50,default:50,min:0,max:150}]},sideThrust:{dam:0,on:true,des:"Side Thrusters",heat:20,eff:100,maxHeat:1000,baseUsg:25,settings:[{des:"flow",val:50,default:50,min:0,max:150}],insulation:10,pwrUsg:25,minHeat:-100,missing:false,dmgRes:1},thruster:{dam:0,on:true,des:"Main Thrusters",heat:20,eff:100,maxHeat:1000,insulation:10,baseUsg:15,settings:[{des:"flow",val:50,default:50,min:0,max:150}],pwrUsg:50,minHeat:-100,missing:false,dmgRes:1},shipComputer:{dam:0,on:true,des:"Ship Computer",heat:0,eff:100,maxHeat:125,insulation:5,pwrUsg:15,sentient:false,minHeat:-200,baseUsg:15,settings:[],missing:false,dmgRes:1},cockpit:{dam:0,on:true,des:"Cockpit",heat:20,eff:100,maxHeat:80,baseUsg:15,settings:[{des:"lifesupport",val:50,min:0,max:150,default:50}],insulation:5,pwrUsg:15,minHeat:-200,missing:false,dmgRes:1},laser:{dam:0,heatAdd:9,on:true,projType:"default",des:"Mk1 Scout laser",type:"basic",heat:20,eff:100,maxHeat:135,baseUsg:25,dmg:30,insulation:5,pwrUsg:25,minHeat:-200,missing:false,dmgRes:3,cd:0,settings:[{des:"rate",val:50,min:0,max:150,default:50}]},armor:{dam:0,on:true,des:"Armor Plating",heat:20,eff:100,maxHeat:305,insulation:0,pwrUsg:0,minHeat:-100,missing:false,baseUsg:0,settings:[],dmgRes:8,types:[{name:"Stock"}]},secondary:{dam:0,on:true,des:"Secondary System",heat:20,eff:100,maxHeat:250,baseUsg:0,settings:[{des:"flow",val:50,default:50,min:0,max:150}],insulation:10,pwrUsg:0,minHeat:-100,missing:false,dmgRes:1}}
 for (i in theThing) {
 theThing[i].usg=0
 if(!theThing[i].types){theThing[i].types=[{name:"Stock",dmgRes:theThing[i].dmgRes}]
@@ -1305,8 +1352,13 @@ var repairButton = document.getElementById("repairButton")
 var amntSel = document.getElementById("amntSel")
 
 
-var store = [{des:"Plasma[FAAE]",amnt:359345,cost:3,cd:"fuel",catagory:"consumables"},{des:"Heavy_Armor",amnt:1,cost:750,cd:"hvyArmor",ref:"heavyArmor",upgrade:true,catagory:"upgrades"},{des:"Proton_Seeker",amnt:1,cost:500,cd:"heavyLaser",ref:"heavyLaser",upgrade:true,catagory:"upgrades"},{des:"Repairs",amnt:20034,cost:200,cd:"repair",catagory:"services"},{des:"RepairKits",amnt:276,cost:72,cd:"repairCharge",catagory:"consumables"},{des:"Vicerite_Armor",amnt:2,cost:650,cd:"martianArmor",ref:"martianArmor",upgrade:true,catagory:"upgrades"},{des:"Boost_Drive",amnt:2,cost:400,cd:"boostDrive",ref:"boostDrive",upgrade:true,catagory:"upgrades"},{des:"Push_Cannon",amnt:1,cost:500,cd:"pusher",ref:"pusher",upgrade:true,catagory:"upgrades"},{des:"Gravity_Chaff",amnt:1,cost:500,cd:"gravChaff",ref:"gravChaff",upgrade:true,catagory:"upgrades"},{des:"Ram_Plate",amnt:1,cost:500,cd:"ram",ref:"ram",upgrade:true,catagory:"upgrades"},
-{des:"Light_Laser",amnt:1,cost:500,cd:"lightLas",ref:"lightLas",upgrade:true,catagory:"upgrades"}]
+var store = [{des:"Plasma[FAAE]",amnt:359345,cost:3,cd:"fuel",catagory:"consumables"},{des:"Heavy_Armor",amnt:1,cost:750,cd:"hvyArmor",ref:"heavyArmor",upgrade:true,catagory:"upgrades",desc:`This is some ol- i mean antiqe armor from 30 years ago, with some extra scr- i mean recycled mauxite-char alloys!`},{des:"Proton_Seeker",amnt:1,cost:520,cd:"heavyLaser",ref:"heavyLaser",upgrade:true,catagory:"upgrades",desc:`After the recent discovery of anti-neutronium, scientests have created a seeking missle that does not use any electronics and only consists of
+two solid blocks of anti-neutronium, and an explosive rock we found!`},{des:"Repairs",amnt:20034,cost:200,cd:"repair",catagory:"services",desc:`is your pod broken? heh, git gud lol newb, but i gueeess we can fix it for you, if you pay us.`},{des:"RepairKits",amnt:276,cost:72,cd:"repairCharge",catagory:"consumables"},{des:"Vicerite_Armor",amnt:2,cost:650,cd:"martianArmor",ref:"martianArmor",upgrade:true,catagory:"upgrades",desc:`Vicerite-bohrum alloy armor, made in collaboration with a REAL martian! like all martian tech, the armor is alive and will heal itself over time; is less durable than standard armor`},{des:"Push_Cannon",amnt:1,cost:300,cd:"pusher",ref:"pusher",upgrade:true,catagory:"upgrades",desc:`Originaly a riot control weapon, cutting edge tech has allowed us to turn it into a pod armament! 
+(PS:Tell security we will NOT be giving their pulse rifles back.`},{des:"Gravity_Chaff",amnt:1,cost:850,cd:"gravChaff",ref:"gravChaff",upgrade:true,catagory:"upgrades",desc:`Strange orbs that utilize the incredibly dense properties of neutronium, rumor says that it takes compressing a prison loaf 99 times to make a single gravity chaff. will have a gravity field around it when activated`},{des:"Ram_Plate",amnt:1,cost:430,cd:"ram",ref:"ram",upgrade:true,catagory:"upgrades",desc:`We're not even going t shugercoat this, its litteraly just a giant hulk of metal we made to fit (sort of???) nicely into your weapon slot; will completetly prevent taking collision damage and will amplify it for things you ram into.`},
+{des:"Light_Laser",amnt:1,cost:650,cd:"lightLas",ref:"lightLas",upgrade:true,catagory:"upgrades",desc:`A laser made for continuious laser, its increadibly weak, but can support extremely high fire rates.`},
+{des:"Spreadshot_Laser",amnt:1,cost:700,cd:"spreadShot",ref:"spreadShot",upgrade:true,catagory:"upgrades",desc:`It's really just a standard laser gun but with a smashed/broken lens.
+its unclear whether the breaking of the lens was deliberate or accidental, but it was probably on acccident.`},
+{des:"Martian_Computer",amnt:1,cost:800,cd:"marsComputer",ref:"marsComputer",upgrade:true,catagory:"upgrades",desc:`A martian artifacts brains, niiicely stuffed into your ship computer slot, its better at mostly everything due to basicly just being a living brain, may cause your ship to become sentient, and-or saipiant`}]
 const easingAmount = 0.05; 
 
 
@@ -1524,11 +1576,16 @@ console.log(station.jobs)
 rng=Math.round(random(1,2))
 console.log(rng)
 if(rng==2){
-newJob={name:"Drone hunting",stat:"droneKills",target:player.droneKills+Math.round(genSV2(2,4,seed,i*35*Math.E)),reward:Math.round(genSV2(600,800,seed,i*32*Math.E))}
+stat="droneKills"
+stat="Drone Hunting"
 }
 if(rng==1){
-newJob={name:"Astroid clearing",stat:"astroidKills",target:player.astroidKills+Math.round(genSV2(10,20,seed,i*37*Math.E)),reward:Math.round(genSV2(300,600,seed,i*31*Math.E))}
+stat="astroidKills"
+name="Astroid Clearing"
 }
+goalSize=Math.round(genSV2(10,20,seed,i*37*Math.E))
+reward=genSV2(10,70,seed,i*31*Math.E)
+newJob={name:name,stat:stat,target:player[stat]+goalSize,reward:reward*goalSize}
 station.jobs.push(newJob)
 }
 }
@@ -1618,9 +1675,9 @@ entities.push({x:0,y:0,w:1000,h:1000,sprite:p4,dist:1,type:"bigMan",sx:0,sy:0,t:
 
 amnt=genSV2(100,200,seed,i*104)
 for (let i = 0; i < amnt; i++) {
-rng=random(0,1)
-if (rng==1){sprite=a3}
-if (rng==0){sprite=rock1}
+//alt:a3
+sprite=rock1
+
 size=genSV2(32,160,seed,i*97)
 randomT=genSV2(-180,180,seed,i*96)
 
@@ -1647,9 +1704,14 @@ nsy=Math.cos(rDir)*1+spd
 console.log(nsx,rDir,orbSpeed)
 }
 //check if elligable for moving to a dense spot
+//bigas, short for big astroid; thingy
 
+if (Math.round(genSV2(1,100,seed,i*1024))==10){
+size=size*8;
 
-entities.push({x:rx,y:ry,w:size,h:size,sprite:sprite,dist:1,type:"astroid",sx:nsx,sy:nsy,t:randomT,r:size,visible:true,mass:size/10,health:size/1,holes:[]})}
+console.log("bigass created!")
+}
+entities.push({x:rx,y:ry,w:size,h:size,sprite:sprite,dist:1,type:"astroid",sx:nsx,sy:nsy,t:randomT,r:size,visible:true,mass:size/10,health:size^2,holes:[]})}
 //evil, fucked up place
 drones = Math.floor(genSV2(4,20,seed,i*81))
 if(worldType.dronefield){
@@ -1667,7 +1729,7 @@ spawnDrone(rx,ry,Math.round(genSV2(0,4,seed,i*92)))
 
 }
 player.mapSize=fieldRadius
-regenJob(3,seed)
+regenJob(6,seed)
 }
 
 //add non-specific variables
@@ -2136,7 +2198,11 @@ function updateSpatialHash() {
 	 
 function tick() {
 if((gt%2)==0){updateSpatialHash()}
+if((gt%10000)==5000&&random(0,1)==0&&computer.sentient){
+scomSay()
 
+}
+triedSave-=1
 //loop if far away from map
 if (worldType.orbit){fieldRadius=15000}
 if (getDist(drone.x,drone.y,0,0)>fieldRadius+300) {
@@ -2204,6 +2270,9 @@ console.log(laser)
 player.pendingWarnings.push("WARNING!! LASER TEMP AT: "+Math.round(laser.heat)+"C/"+laser.maxHeat+"C")
 }
 if (cockpit.dam>70||cockpit.eff<20&&cockpit.on||player.air <85){
+if(triedSave<0){
+scomSay("trySave")
+}
 player.pendingWarnings.push("WARNING! LIFE SUPPORT EFFICENCY AT "+cockpit.eff+"%! ")
 player.inCrisis=true
 }
@@ -2247,10 +2316,13 @@ colliding=false
 ticksUntilBoom-=1
 player.hp=Math.min(player.hp+0.0005,100)
 if(youAreDie) {
-
+scomSay("die")
 pushMsg("You died!")
 pushConMsg("VESSEL RESET COMPLETE.")
-pushConMsg("WELCOME, PREVIOUS PILOT HAS FLOWN FOR ["+Math.floor((Date.now()-player.living)/100000)+" Minutes] AND ["+Math.floor((Date.now()-player.living)/1000)+" Seconds]")
+time = Math.floor(((Date.now()-player.living)/1000))
+seconds = (time)%60
+minutes = (time/60)%60
+pushConMsg("WELCOME, PREVIOUS PILOT HAS FLOWN FOR ["+minutes+" Minutes] AND ["+Math.floor(time)+" Seconds]")
 pushConMsg("CAUSE OF DEATH: [Suffocation]")
 pushConMsg("WOULD YOU LIKE TO ERASE THIS DATA? (Y/N)")
 setTimeout(()=>{
@@ -2341,7 +2413,7 @@ seconds = Math.floor(gt/100)
 //background rendering
 if (bkRendered){
 		 bctx.clearRect(0,0,w,h)
-if(settings.renderBackground){		 
+if(settings.renderBackground&&!lagmode){		 
 bctx.save()
 
 	 bctx.translate((w/2),(h/cOff))
@@ -2458,6 +2530,7 @@ curr.sy+=Math.cos(curr.t)*(curr.thrust)
 if(random(1,4)==2){flash(curr.x,curr.y)}
 if(random(0,50)==10||drone.health<-30){
 	player.droneKills+=1
+	scomSay("kill",3)
 	player.credits+=10
 	
 	newExplosion(curr.x,curr.y,random(8,122),5)
@@ -3061,6 +3134,7 @@ ctx.filter = oldFilt
 			speedDiff=Math.abs((drone.sx-osx)+(drone.sy-osy))
 			}
 			tickDelay=Math.abs((Date.now()-tickStart)-settings.gameSpeed)
+			lagmode=(tickDelay>7)&&settings.doLagmode
 
 
 			if(!heartstop){
@@ -3113,7 +3187,8 @@ if(settings.showGUI&&(gt%10)==1) {
 
 
 lctx.filter=``
-lctx.clearRect(0,0,w,h)
+if (!settings.lidar){lctx.clearRect(0,0,w,h)}
+
 if (player.air<90){
 lctx.filter=`opacity(${Math.abs(Math.sin(gt)*20)}%)`
 lctx.fillStyle="red"
@@ -3142,6 +3217,7 @@ lctx.filter=`brightness(${20}%) saturate(${0}%)`
 }
 if(!c.missing){
 lctx.drawImage(document.getElementById("d"+i2),0,0,164,164)
+
 }
 }
 }
@@ -3168,7 +3244,7 @@ player.fired=true
 acc=random(-(1-laser.settings[0].val/150)*3,(1-laser.settings[0].val/150)*3,0)
 
 acc2=acc*Math.PI/180
-fireLas(drone,acc,30,trueTurn,systems.laser.projType)
+fireLas(drone,acc,laser.dmg,trueTurn,systems.laser.projType)
 }
 player.air-=0.02+cockpit.dam/1000
 player.air += 2/(101-systems.cockpit.eff)
@@ -3386,11 +3462,13 @@ player.dockedStation=curr
 pushConMsg("INIT_DOCKING_MINIPUTT")
 pushConMsg("DOCKING TO "+curr.des)
 pushConMsg("WELCOME, PILOT. PLEASE TYPE 'help' IN THE CONSOLE FOR ASSISTANCE")
+scomSay("docked")
 
 }
 }
  }
 function renderEnt(curr) {
+
 //handle lagging by skipping rendering
 //yes, it uses abs twice, please shut up.
 let dx = Math.abs(Math.abs((curr.x - drone.x))+10)
@@ -3510,6 +3588,7 @@ mpClientTick()
 function fireLas(parent,acc,dmg,dir,type){
 turn = parent.t
 stop=false
+
 if (parent==drone&&laser.typeUsed=="ram"){stop=true}
 if (!stop){
 if(!type){type="basic"}
@@ -3527,7 +3606,12 @@ if (type=="fatfuck"){bulletSpeed=1;dmg+=20;pw=16;console.log("FATFUCK DETECTED!!
 if (type=="seekerOrb"){dmg+=35;life=500;bulletSpeed=2;pwidth=12;dmg+=75;pw=16;console.log("MISSILE",type);sprite=sprk1}
 
 
-
+if (type=="shotgun"){
+spreadCount=6
+for (let i12 = 0; i12 < spreadCount; i12++) {
+fireLas(parent,2,dmg/(spreadCount*2),dir+random(-2,2,0))
+}
+}
 			newLas={x:parent.x,y:parent.y,w:pwidth,h:12,noCollide:true,sprite:sprite,dist:1,type:"laser",t:turn-180+acc,sx:parent.sx+Math.sin(((acc+turn)*-Math.PI/180))*bulletSpeed,sy:parent.sy+Math.cos(((acc+turn)*-Math.PI/180))*bulletSpeed,r:10,visible:true,mass:mass,dmg:dmg,life:life,hit:false,parent:parent,lasType:type}
 
 		
