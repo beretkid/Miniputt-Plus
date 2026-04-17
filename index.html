@@ -25,6 +25,8 @@
 <img hidden=true src="t5.png" id="t5">
 <img hidden=true src="p3.png" id="p3">
 <img hidden=true src="p4.png" id="p4">
+<img hidden=true src="turretBody.png" id="turretBody">
+<img hidden=true src="turretHead.png" id="turretHead">
 <img hidden=true src="freighter.png" id="freightSprite">
 <img hidden=true src="fighter.png" id="fighterSprite">
 <img hidden=true src="component.png" id="compSprite">
@@ -273,8 +275,8 @@ side = Math.sign(getSide(from,to,drone))*1
 if (dist3<depth){hit=true}else{hit=false}
 
 
-if (side<0){return {right:false,left:true,dir:-dir2,side:side,hit:hit}}
-if (side>0){return {right:true,left:false,dir:-dir2,side:side,hit:hit}}
+if (side<0){return {right:false,left:true,dir:-dir2,side:side,hit:hit,endSpot:{x:tx2,y:ty2}}}
+if (side>0){return {right:true,left:false,dir:-dir2,side:side,hit:hit,endSpot:{x:tx2,y:ty2}}}
 }
 
 
@@ -355,6 +357,9 @@ var driving=true
 var off=Math.PI*-2
 var conStatic=document.getElementById("conGrain")
 var sysStatsThing=document.getElementById("systemsStats")
+var spriteTurretHead=document.getElementById("turretHead")
+var spriteTurretBody=document.getElementById("turretBody")
+
 conStatic.classList.toggle('faded');
 var dkp = false
 var power=1000
@@ -366,7 +371,7 @@ const corruptionSymbols=["#","*","%","$","_","!"]
 const corruptionSymbolsCrit="!@#$%^&*()~`+=-_{}|[]\:;'/.,?><QWERTYUIOPASDFGHJKLZXCVBNM1234567890 ".split('').push("ERR","")
 const cOff=2
 //start at 10000
-const settings={generateField:true,runOutOfView:true,renderDist:w*h,cameraChase:true,paused:false,hardPaused:false,drawFOV:false,lightFalloff:4,conSize:1.5,gameSpeed:10,screenDarkness:50,notifEnabled:true,astroidsCollide:true,lazySV:false,freindlyDrones:false,lasersHurt:true,sharpShooterDrones:false,aimLaser:false,showTD:false,slowLag:false,indClean:false,hivisLasers:true,lineSize:7,multiplayer:true,canvready:false,minimap:true,lidar:false,rayCount:175,rayRadius:10,renderBackground:true,showGUI:true,renderHoles:false,doLagmode:true};
+const settings={generateField:true,runOutOfView:true,renderDist:w*h,cameraChase:true,paused:false,hardPaused:false,drawFOV:false,lightFalloff:4,conSize:1.5,gameSpeed:10,screenDarkness:50,notifEnabled:true,astroidsCollide:true,lazySV:false,freindlyDrones:false,lasersHurt:true,sharpShooterDrones:false,aimLaser:false,showTD:false,slowLag:false,indClean:false,hivisLasers:true,lineSize:7,multiplayer:true,canvready:false,minimap:true,lidar:false,rayCount:175,rayRadius:10,renderBackground:true,showGUI:true,renderHoles:false,doLagmode:true,showAimDot:true};
 var rkp = false
 var zd = false
 var spin = 0
@@ -440,7 +445,7 @@ pColorPickerContrast.addEventListener('input', function(event) {
 
 bCan.width = window.innerWidth/settings.conSize
 bCan.height = window.innerHeight;
-var player = {hp:100,air:100,repairCharges:8,dizzy:0,rearCD:0,cameraThrow:0,cameraThrowX:0,cameraThrowY:0,cCon:false,droneKills:0,credits:1000,jobs:[],driving:true,visionRadius:45,docked:false,dCool:0,typing:false,dockedStation:null,upgrades:{controlPanel:{installed:true,cost:500,des:"Ctrl_panel"}},inCrisis:false,astroidKills:0,fired:false,pendingWarnings:[],speed:0.00165,living:Date.now(),paint:{using:true,type:paint.full,color:0,saturation:100,brightness:100,contrast:100}}
+var player = {hp:100,air:100,repairCharges:8,dizzy:0,rearCD:0,cameraThrow:0,cameraThrowX:0,cameraThrowY:0,cCon:false,droneKills:0,credits:1000,jobs:[],driving:true,visionRadius:45,docked:false,dCool:0,typing:false,dockedStation:null,upgrades:{controlPanel:{installed:true,cost:500,des:"Ctrl_panel"}},inCrisis:false,astroidKills:0,fired:false,pendingWarnings:[],speed:0.00165,living:Date.now(),paint:{using:true,type:paint.full,color:0,saturation:100,brightness:100,contrast:100},scanning:false,scan:{fighterDrone:0,astroid:0,turret:0},scanAck:false}
 var xo
 var drone = {x:50,y:0,t:0,w:32,h:32,r:0,hp:100,sx:0,sy:0,r:0,mass:1,brakes:false,boostCool:0}
 var turnSpeed=0
@@ -488,7 +493,7 @@ var mpcReady=false
 var mapsubtype=0
 var bkRendered=true
 //sentient computer lines, but you can just call me 'scom lines'
-var scomlines={limp:["I think somethings broken!","Can we use a repair kit or something please?","I think theres a chunk of me missing somewhere..","man that STILL hurts."],hurt:["Ow.","dodge it! dodge it!","That burns really badly","Oof","Taking damage..","OW!"],brainDamage:["I feel so dizzy..","something isnt right, i feel super off..","My brains hurting..","I feel like i can somehow vomit","Where are we again??"],lowFuel:["I'm hungry, can i get some food soon?","My fueltank hungers.","I'm hungry","Some more plasma would be nice"],lowAir:["Oh my god can you breahte in there??","Hold on dont die on me!","Hang in there, im trying to fix it!"],docked:["Finnaly, home again!","Oh! Can we take a break now while we're here?","Back home.","We're back allready?","Can i get some new upgrades? preferably martian parts?"],partAdded:["Always nice to try something new!","Feels nice!","Wish i had a mirror or something to see myself, i bet i look cool as hell!", "OOooOOo","The controls on this thing are weird","OoOOo shiny!"],badpartAdded:["Alittle crusty but im sure its fine.","How old is this?","Wait that works?","I guess you get what you paid for..","You arent going to install that, are yo- you are going to install that, ok."],idle:["Where are we going?","Whats the plan?","i was gonna say something, but i forgot.","Do you sometimes just look out at space?? i do"],die:["I DONT WANNA DI-","Oh god OH G-","Uh O-","NO! HElP M-","..Pleas-","STO-","Im sor-","Goodby-"],kill:["Got one!","Nice shot!","BOOM!","Nice!","Man that drone got anihalated!","Fireworks!!","We're so good at this", "thats one drone down.."],trySave:["That should buy you some more time! /%<>^cockpit/%"]}
+var scomlines={limp:["I think somethings broken!","Can we use a repair kit or something please?","I think theres a chunk of me missing somewhere..","man that STILL hurts."],hurt:["Ow.","dodge it! dodge it!","That burns really badly","Oof","Taking damage..","OW!"],brainDamage:["I feel so dizzy..","something isnt right, i feel super off..","My brains hurting..","I feel like i can somehow vomit","Where are we again??"],lowFuel:["I'm hungry, can i get some food soon?","My fueltank hungers.","I'm hungry","Some more plasma would be nice"],lowAir:["Oh my god can you breahte in there??","Hold on dont die on me!","Hang in there, im trying to fix it!"],docked:["Finnaly, home again!","Oh! Can we take a break now while we're here?","Back home.","We're back allready?","Can i get some new upgrades? preferably martian parts?"],partAdded:["Always nice to try something new!","Feels nice!","Wish i had a mirror or something to see myself, i bet i look cool as hell!", "OOooOOo","The controls on this thing are weird","OoOOo shiny!"],badpartAdded:["Alittle crusty but im sure its fine.","How old is this?","Wait that works?","I guess you get what you paid for..","You arent going to install that, are yo- you are going to install that, ok."],idle:["Where are we going?","Whats the plan?","i was gonna say something, but i forgot.","Do you sometimes just look out at space?? i do"],die:["I DONT WAN-","Oh god OH G-","Uh O-","NO! HElP M-","..Pleas-","STO-","Im sor-","Goodby-"],kill:["Got one!","Nice shot!","BOOM!","Nice!","Man that drone got anihalated!","Fireworks!!","We're so good at this", "thats one drone down.."],trySave:["That should buy you some more time! /%<>^cockpit/%"],alone:["No drones i guess.", "So empty..","Just us here", "NOTHING?? NOBODY??","Booorinnggg","Wow litteraly nothing is here","Are we outside of the field or something?, where is everything?"]}
 //make him occasionally run commands, like $job to check things,
 //command prefix is /%<>@las rate 10/%
 //new line prefix is /&
@@ -846,8 +851,13 @@ important=true
 tx = x
 ty = y
 }
+
 entities.push({x:x,y:y,w:22,h:22,sprite:sprite,dist:1,type:"fighterDrone",t:0,sx:0,sy:0,t:0,r:12,subtype:subtype,visible:true,mass:2,health:100,targ:{x:tx,y:ty,t:0,thrust:0,important:important,memory:10},tt:0,cool:0,locked:false,bOff:gt+random(-100,100),dieSpinDir:random(-1,1,0),health:60,fireCool:fc,dmg:dmg,acc:acc,task:"idle",strafing:false,holes:[]})
 
+}
+function spawnTurret(x,y) {
+entities.push({x:x,y:y,w:22,h:22,sprite:spriteTurretHead,dist:1,type:"turret",t:0,sx:0,sy:0,t:0,r:12,visible:true,mass:2,health:100,targ:{x:0,y:0,t:0,thrust:0,memory:10},tt:0,cool:0,locked:false,bOff:gt+random(-100,100),dieSpinDir:random(-1,1,0),health:60,fireCool:2,dmg:10,acc:0,task:"idle",strafing:false,holes:[]})
+console.log(x,y,"GOO CHECK IT OUT")
 }
 function sendDrone() {
 console.log("drone Sent.")
@@ -935,6 +945,7 @@ player.dCool=750
 }
 if (txt=="store"){
 	//migrate to seperate system using arrays please, this is required dont make a bit for every single thing please good god.
+	//Burp, done
 	//buy things
 	if (!arg1) {
 		for (i3 in station.store) {
@@ -992,13 +1003,19 @@ if (txt=="store"){
 }
 if (txt=="warp"){
 unloadEnts(station)
+//You thought capitalism hasent touched portal travel yet!?? FOOL!
+
+//you should be able to make money by waiting for backup drones to come if you are BAD at this
+if (player.credits>150){
+player.credits-=150
 if(!arg1){
+seed=random(0,99999)
 regenField(5000,random(0,99999))
 }else{
 regenField(5000,Number(arg1+arg3+arg2+arg3+arg1))}
 
+}else {}
 }
-
 if (txt=="upgrade"||txt=="upgrades"){
 matchFound=false
 
@@ -1198,8 +1215,16 @@ pushConMsg("Repair charges: "+player.repairCharges+"/8")
 }
 }
 
-
-
+if (txt=="lidar"||txt=="lines"||txt=="lidarmode"){
+settings.lidar=!settings.lidar
+}
+if (txt=="scan"||txt=="radar"||txt=="sc"){
+console.log("All the ents",renderedEnts)
+if (renderedEnts.length>0){
+player.scanning=true
+player.scanAck=false
+}else{pushConMsg("No radar targets nearby!");scomSay("alone")}
+}
 
 
 
@@ -1414,6 +1439,7 @@ mapctx.fillRect((((c.x+(fieldRadius)-c.w)+addx)/fr),(((c.y+(fieldRadius)-c.h)+ad
 	mapctx.restore()
 
 }
+var seed=0
 function radiansToDegrees(radians) {
     return radians * 180 / Math.PI;
 }
@@ -1558,7 +1584,7 @@ pushMsg("Repaired "+rng+"Dmg ("+player.repairCharges+"/8)")
 }
 }
 })
-var entities = [{x:75,y:97,w:150,h:150,sprite:p3,dist:9,type:"Planet",sx:0,sy:0,t:0,r:64,grav:100,visible:true,mass:100000},{x:75,y:97,w:64,h:64,sprite:boxSprite,dist:1,type:"box",noCollide:true,sx:0,sy:0,t:0,r:64,visible:true,mass:10,lines:[{x1:32,y1:32,x2:-64,y2:32}]}]
+var entities = [{x:75,y:97,w:64,h:64,sprite:boxSprite,dist:1,type:"box",noCollide:true,sx:0,sy:0,t:0,r:64,visible:true,mass:10,lines:[{x1:32,y1:32,x2:-64,y2:32}]}]
 var station={x:0,y:0,w:128,h:128,sprite:stationSprite,dist:1,des:"Alpha Beta Station 78",type:"station",store:store,jobs:[{name:"Astroid Clearing",reward:32},{name:"Stinkmaster hiring"}],t:0,sx:0,sy:0,t:0,r:44,visible:true,mass:10000000,collisionPoints:[{x:45,y:0,r:34},{x:-45,y:0,r:34},{x:0,y:-45,r:34},{x:0,y:45,r:34}],fuel:100000}
 entities.push(station)
 
@@ -1577,14 +1603,14 @@ rng=Math.round(random(1,2))
 console.log(rng)
 if(rng==2){
 stat="droneKills"
-stat="Drone Hunting"
+name="Drone Hunting"
 }
 if(rng==1){
 stat="astroidKills"
 name="Astroid Clearing"
 }
-goalSize=Math.round(genSV2(10,20,seed,i*37*Math.E))
-reward=genSV2(10,70,seed,i*31*Math.E)
+goalSize=random(10,20)
+reward=random(20,70)
 newJob={name:name,stat:stat,target:player[stat]+goalSize,reward:reward*goalSize}
 station.jobs.push(newJob)
 }
@@ -1610,7 +1636,8 @@ function hsvToRgb(h, s, v) {
 
 
 if(settings.generateField) {
-regenField(5000,random(1000000,9999999))
+seed=random(1000000,9999999)
+regenField(5000,seed)
 drone.x = station.x
 drone.y = station.y+ 100
 }
@@ -1725,8 +1752,9 @@ rDir=genSV2(-180,180,seed,i*133)*Math.PI/180
 rx=Math.sin(rDir)*rDist
 ry=Math.cos(rDir)*rDist
 
-spawnDrone(rx,ry,Math.round(genSV2(0,4,seed,i*92)))
-
+if (Math.floor(genSV2(0,40,seed,i*81))<30){spawnDrone(rx,ry,Math.round(genSV2(0,4,seed,i*92)))}else{
+spawnTurret(rx,ry)
+}
 }
 player.mapSize=fieldRadius
 regenJob(6,seed)
@@ -2182,7 +2210,7 @@ adaptWindow()
 var outcon=[]
 const CELL_SIZE = 100; // How big each grid square is
 let spatialHash = {};
-
+//Con putor
 function updateSpatialHash() {
     spatialHash = {}; // Clear every frame (for moving objects)
     for (let ent of entities) {
@@ -2197,14 +2225,23 @@ function updateSpatialHash() {
 }
 	 
 function tick() {
+if (player.scanning&&player.scanAck){
+
+for(i in player.scan){
+pushConMsg(i+": "+String(player.scan[i]))
+player.scan[i]=0}//Reset the counts for all the thingys
+
+player.scanning = false
+}
 if((gt%2)==0){updateSpatialHash()}
 if((gt%10000)==5000&&random(0,1)==0&&computer.sentient){
 scomSay()
 
 }
 triedSave-=1
-//loop if far away from map
+
 if (worldType.orbit){fieldRadius=15000}
+//loop if far away from map
 if (getDist(drone.x,drone.y,0,0)>fieldRadius+300) {
 oppose=pointAt(0,0,drone.x,drone.y)
 dist=getDist(drone.x,drone.y,0,0)
@@ -2457,6 +2494,36 @@ console.log("Removed type",curr.type,"Explosion due to breaking the laws of phys
 //No breaking the laws of physics on my watch.
 }
 if (getDist(curr.x,curr.y,drone.x,drone.y)>1000){
+
+				if ( curr.type=="fighterDrone"&&getDist(curr.x,curr.y,0,0)>fieldRadius&&(gt%1000)==2) {//come back here dude
+				oppose=pointAt(0,0,curr.x,curr.y)
+				newX=Math.sin(oppose)*(fieldRadius-300)*-1
+				newY=Math.cos(oppose)*(fieldRadius-300)*-1
+				curr.targ = {x:newX,y:newY,t:0,thrust:0,important:true,memory:10}
+				}
+				
+					
+				//shitty follow if far away enough 
+				if (curr.type=="fighterDrone"&&(curr.targ.important||curr.targ.memory>0)){
+				curr.targ.memory=Math.max(0,curr.targ.memory-0.01)
+				
+				chaseDir=pointAt(curr.x,curr.y,curr.targ.x,curr.targ.y)+Math.PI
+				curr.sx+=Math.sin(chaseDir)*0.02;
+				curr.sy+=Math.cos(chaseDir)*0.02;
+				curr.sx/=1.01;curr.sy/=1.01;
+				} else if(curr.type=="fighterDrone"){curr.sx/=1.01;curr.sy/=1.01;
+				dist=getDist(curr.x,curr.y,curr.targ.x,curr.targ.y)
+				if (dist<60){//make new position to move to
+				rDist=random(fieldRadius,fieldRadius+500)
+rDir=random(-180,180,0)*Math.PI/180
+rx=Math.sin(rDir)*rDist
+ry=Math.cos(rDir)*rDist
+curr.targ.important=true
+				curr.targ.x=rx
+				curr.targ.y=ry
+				}
+				
+				}
 				curr.x+=curr.sx
 				curr.inRange=false
 				
@@ -2470,7 +2537,7 @@ distance=getDist(drone.x,drone.y,0,0)
 
 
 if (distance<curr.r*2.5) {
-drone.sx+=(Math.sin(gravDir)*(1000)/(distance*-100))
+curr.sx+=(Math.sin(gravDir)*(1000)/(distance*-100))
 curr.sy+=(Math.cos(gravDir)*(1000)/(distance*-100))
 }
 
@@ -2512,8 +2579,90 @@ curr.w=random(3,6)
 curr.h=random(3,6)
 }
 
-//drone ai
 
+if (curr.type=="turret") {
+if(curr.health<0){
+	player.droneKills+=1
+	scomSay("kill",3) //Say the line Bart!
+	//wow pilot you TOTALY DECIMATED that drone, wow pilot! oh WOW Pilot!!
+	player.credits+=10
+	
+	newExplosion(curr.x,curr.y,random(8,122),5)
+	checkJobs()
+	debrisBoom(curr.x,curr.y)
+	curr.remove=true}
+curr.sx=0
+curr.sy=0
+curr.cool-=1
+curr.targ.memory=Math.max(curr.targ.memory-1,0)
+dist=getDist(curr.x+curr.sx,curr.y+curr.sy,drone.x+drone.sx,drone.y+drone.sy)
+if (dist>640){curr.targ.memory=3000}
+arrivalTime=dist/10
+if (curr.targ.memory>0||dist<3000&&avrgDamage>30) {
+//not that 1t I2NT imp0rtant but my brain is w31rd, so i g0tta s3t it 0ff.
+curr.targ.important=false
+curr.targ.x=drone.x+(((drone.sx)-curr.sx)*arrivalTime)
+curr.targ.y=drone.y+(((drone.sy)-curr.sy)*arrivalTime)
+curr.locked=true
+curr.targ.memory=200
+
+}else{curr.locked=false;}
+adaptSpeed=30//lower means higher
+curr.targ.t = ((pointAt(curr.x,curr.y,curr.targ.x,curr.targ.y)+Math.PI))
+diff=(curr.targ.t-curr.tt)
+
+while (diff < -Math.PI){diff +=Math.PI*2}
+while (diff > Math.PI) {diff -=Math.PI*2}
+
+
+
+curr.tt+=Math.sign(diff)/250
+//y0uR d0n3 N0w BUD
+//if(diff<0.0001||settings.sharpShooterDrones){curr.tt=curr.targ.t} -- no, because this can cause it to suddenly become perfect at thier turning speed at random
+
+curr.t=curr.tt/-(Math.PI/180)
+if(diff<0.1&&random(0,25)==2&&curr.cool<0&&curr.locked&&!settings.freindlyDrones){
+
+ptype="normal"
+if (curr.subtype=="laser"){
+ptype="ray"
+}
+fireLas(curr,random(-curr.acc,curr.acc,0),curr.dmg,curr.t,"ray");
+curr.cool=curr.fireCool
+
+}
+}
+
+if (curr.type=="rayPrecursor") {
+curr.life-=1
+if (curr.life<0){
+ray=newRay(curr.x, curr.y, curr.t)
+curr.firing=true
+if (curr.life<-50){
+curr.remove=true
+}
+}
+
+
+//I am going to fucking explode - laserPrecursor, age 10 ticks
+
+}
+
+
+
+//Scanning role call
+if (player.scanning) {
+player.scanAck=true
+console.log("Erm.. im here!")
+for (i2 in player.scan){
+if (curr.type==i2) {
+player.scan[curr.type]+=1
+}
+}
+
+}
+
+//drone ai
 if (curr.type=="fighterDrone"){
 curr.cool-=1
 curr.targ.memory=Math.max(curr.targ.memory-1,0)
@@ -2528,9 +2677,10 @@ curr.t+=curr.dieSpinDir*2
 curr.sx+=Math.sin(curr.t)*(curr.thrust)
 curr.sy+=Math.cos(curr.t)*(curr.thrust)
 if(random(1,4)==2){flash(curr.x,curr.y)}
-if(random(0,50)==10||drone.health<-30){
+if(random(0,50)==10||curr.health<-30){
 	player.droneKills+=1
-	scomSay("kill",3)
+	scomSay("kill",3) //Cmon bart, say the thing!
+	//wow pilot you TOTALY DECIMATED that drone, wow pilot! oh WOW Pilot!!
 	player.credits+=10
 	
 	newExplosion(curr.x,curr.y,random(8,122),5)
@@ -2556,10 +2706,18 @@ if ((gt%1000)==500&&random(0,4)==3) {
 curr.strafing = random(400,600)//strafe for 400-600 ticks (~4-6 seconds)
 
 }
+if ((gt%1000)==500&&random(0,10)==3) { 
+pushConMsg("WARNING: Strong artificial radio signals detected from enemy, reinforcements likely inbound!")
+aAmnt=random(1,5)
+for (let i16 = 0; i16 < aAmnt; i16++) {
+sendDrone()
+}
+
+}
 adaptSpeed=9
 curr.targ.t = ((pointAt(curr.x,curr.y,curr.targ.x,curr.targ.y)+Math.PI))
 if (curr.strafing>0) {
-curr.targ.t = ((pointAt(curr.x,curr.y,curr.targ.x,curr.targ.y)+Math.PI))+Math.min(Math.max(getMovedir(curr.x,curr.y,curr.sx,curr.sy)/10,-1),1)
+curr.targ.t = ((pointAt(curr.x,curr.y,curr.targ.x,curr.targ.y)+Math.PI))+Math.min(Math.max(getMovedir(curr.x,curr.y,curr.sx,curr.sy)/10,-30),30)
 adaptSpeed=15
 }
 
@@ -2570,13 +2728,20 @@ while (diff > Math.PI) {diff -=Math.PI*2}
 
 
 
-curr.tt+=(diff/Math.exp(Math.abs(diff)))/adaptSpeed
+curr.tt+=Math.sign(diff/Math.exp(Math.abs(diff)))/adaptSpeed
 //y0uR d0n3 N0w BUD
-if(diff<0.0001||settings.sharpShooterDrones){curr.tt=curr.targ.t}
+//if(diff<0.0001||settings.sharpShooterDrones){curr.tt=curr.targ.t}
+
 speedDiff=getDist(drone.sx,drone.sy,curr.sx,curr.sy)
+dist2=getDist(curr.targ.x,curr.targ.y,curr.x,curr.y)
+curr.thrust=((0.02+Math.min(dist2/3000,0.03))*Math.max(0.9,speedDiff))/Math.max(5+Math.abs(diff),1)
 
-curr.thrust=(0.02*Math.max(0.9,speedDiff))/Math.max(5+Math.abs(diff),1)
-
+if (curr.missileChasing) {//OH FUCK!!!
+curr.thrust=Math.max((0.05*Math.max(0.9,speedDiff))/Math.max(5+Math.abs(diff),1),0.03)
+if (curr.strafing<-100){
+curr.strafing = 100
+}
+}//OH FUCK!!!
 if(diff<0.1&&random(0,25)==2&&curr.cool<0&&curr.locked&&!settings.freindlyDrones){
 
 ptype="normal"
@@ -2600,6 +2765,7 @@ curr.t+=curr.ts
 }
 if ( curr.type=="laser"){
 if (curr.lasType=="seekerOrb"&&curr.target){
+curr.target.missileChasing = true
 curr.t+=(Math.abs(curr.sx)+Math.abs(curr.sy))
 curr.sx/=1.01+(750-curr.life)/20000
 curr.sy/=1.01+(750-curr.life)/20000
@@ -2627,6 +2793,9 @@ console.log(curr.life)
 if ( curr.life<0||curr.hit){
 if (curr.lasType=="seekerOrb"){
 newExplosion(curr.x,curr.y,10,10)
+if(curr.target){
+curr.target.missileChasing = false
+}
 console.log("Kablooms")
 }else{
 debrisExplosion(curr.x,curr.y)
@@ -2707,6 +2876,7 @@ las.sy+=(Math.cos(gravDir-Math.PI)*(las.grav/3)/(distance*-100))*Math.min(curr.m
 if (curr.lasType=="seekerOrb"){
 if (curr.parent.type=="fighterDrone"){
 curr.target=drone
+drone.missileChasing=true
 }else{
 if (las.type=="fighterDrone"){
 
@@ -2736,7 +2906,7 @@ if (checkCircle(curr,las)&&curr.dist==1&&!curr.noCollide) {
 if(las.type=="laser"){
 
 
-if (curr.type=="astroid"||curr.type=="fighterDrone") {
+if (curr.type=="astroid"||curr.type=="fighterDrone"||curr.type=="turret") {
 
 if(las.parent!==curr){
 
@@ -2894,11 +3064,14 @@ ctx.fillRect(-2,-2,4,4)
 				//console.log(Math.round(curr.x + drone.x),Math.round(curr.y + drone.y))
 				
 }
+//reset some things
+curr.missleChasing=false
 }
 ctx.restore()
 //REAPING TIME!!
 entities = entities.filter((ent) => !ent.remove);
 //get rendered ents, here is good because then we wont get ghosts, i hope.
+//i legitimetly do not remember what i mean by ghosts, is this shit haunted????
 					renderedEnts=entities.filter((ent) => ent.inRange);
 
 
@@ -3491,16 +3664,7 @@ if (getDist(drone.x,drone.y,curr.x,curr.y)<(zoom/10)||curr.type=="bigMan") {
 				if (curr.vFade<1||!settings.drawFOV||curr.type=="bigMan"){
 									oldfilt = ctx.filter
 				if ( settings.drawFOV){ctx.filter = `opacity(${100-curr.vFade*100}%)`}
-				if(settings.indClean){
-				orig=ctx.globalCompositeOperation
-				ctx.globalCompositeOperation = 'destination-out';
-				ctx.save()
-				ctx.translate(((curr.lx+drone.x)-curr.x),curr.ly-(curr.ly+drone.y))
-				pushConMsg(curr.lx-curr.x)
-				ctx.drawImage(curr.sprite,-curr.w/2,-curr.h/2,curr.w,curr.h)
-				ctx.restore()
-				ctx.globalCompositeOperation=orig
-				}
+
 				if(curr.hue){
 				
 				ctx.filter=`hue-rotate(${curr.hue}deg);`;
@@ -3508,7 +3672,43 @@ if (getDist(drone.x,drone.y,curr.x,curr.y)<(zoom/10)||curr.type=="bigMan") {
 				if(curr.type=="galaxy"){
 				ctx.filter=ctx.filter+`opacity(${40+(Math.sin(gt/10)*10)+curr.hue}%)`
 				}
+								
+				if(curr.type=="turret"){
+				ctx.save()
+				ctx.rotate(-curr.t * Math.PI/180)
+				
+				ctx.drawImage(spriteTurretBody,-curr.w/2,-curr.h/2,curr.w,curr.h)
+				ctx.restore()
+				}
+				if (curr.type=="fighterDrone"&&settings.aimLaser){
+								ctx.save()
+								console.log("I SEE YOU!!!")
+				ctx.rotate(-curr.t * Math.PI/180)
+				dist=getDist(curr.x+curr.sx,curr.y+curr.sy,drone.x+drone.sx,drone.y+drone.sy)
+				arrivalTime=dist/10
+				movingX = ((curr.sx-drone.sx)*arrivalTime)
+				movingY = ((curr.sy-drone.sy)*arrivalTime)
+				ctx.fillStyle="red"
+				ctx.strokeStyle="red"
+				ctx.fillRect(movingX-2.5,movingY-2.5,5,5)
+				ctx.beginPath(); // Start a new path
+				ctx.moveTo(0, 0); // Move the pen to (30, 50)
+				ctx.lineTo(movingX,movingY); // Draw a line to (150, 100)
+				ctx.stroke(); // Render the path
+				
+				ctx.restore()
+				}
+								if (curr.type=="rayPrecursor"){
+								console.log("AHHH OH MY GOD")
+				ctx.strokeStyle="red"
+				ctx.fillRect(0,0,100,100)
+				ctx.beginPath(); // Start a new path
+				ctx.moveTo(0, 0); // Move the pen to (30, 50)
+				ctx.lineTo(0,100); // Draw a line to (150, 100)
+				ctx.stroke(); // Render the path
+				}
 				ctx.drawImage(curr.sprite,-curr.w/2,-curr.h/2,curr.w,curr.h)
+
 				if (curr.holes&&settings.renderHoles){
 				ctx.globalCompositeOperation = 'destination-out';
 				for (i10 in curr.holes){
@@ -3588,7 +3788,7 @@ mpClientTick()
 function fireLas(parent,acc,dmg,dir,type){
 turn = parent.t
 stop=false
-
+if (true){ // usualy should be (type!=="ray"), but due to debugging purpouses it is currently disabled.
 if (parent==drone&&laser.typeUsed=="ram"){stop=true}
 if (!stop){
 if(!type){type="basic"}
@@ -3615,7 +3815,13 @@ fireLas(parent,2,dmg/(spreadCount*2),dir+random(-2,2,0))
 			newLas={x:parent.x,y:parent.y,w:pwidth,h:12,noCollide:true,sprite:sprite,dist:1,type:"laser",t:turn-180+acc,sx:parent.sx+Math.sin(((acc+turn)*-Math.PI/180))*bulletSpeed,sy:parent.sy+Math.cos(((acc+turn)*-Math.PI/180))*bulletSpeed,r:10,visible:true,mass:mass,dmg:dmg,life:life,hit:false,parent:parent,lasType:type}
 
 		
-			return entities.push(newLas)}}
+			return entities.push(newLas)}}else{
+			//ray of doom and despair
+			//newRay(parent.x, parent.y, rayAngle)
+			entities.push({x:parent.x,y:parent.y,sx:0,sy:0,w:10,h:10,sprite:sprk1,type:"rayPrecursor",mass:1,r:10,noCollide:true,life:100})
+			
+			}
+			}
 
 function checkLidar(){
 lctx.clearRect(0,w-10,1000,1000)
@@ -3636,7 +3842,7 @@ for (let i12 = 0; i12 < settings.rayCount; i12++) {
 	 if (ray.hit){brightness=Math.max(10,brightness)}
 	 hue=0
 	 sat=0
-	 if (ray.obj&&ray.obj.type=="fighterDrone"){sat=100;}
+	 if (ray.obj&&ray.obj.type=="fighterDrone"||ray.obj.type=="turret"){sat=100;}
 if (ray.obj&&ray.obj.type=="laser"){sat=100;hue=20;}
     lctx.fillStyle = hsvToRgb(hue,sat, brightness);
 
