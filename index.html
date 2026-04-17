@@ -350,7 +350,7 @@ var scIn = document.getElementById("scInput")
 var newPosX = 0
 var newPosY = 0
 var ukp = false
-var collided=false
+var collided=0
 var speedDiff=0
 var speed=0
 var driving=true
@@ -445,12 +445,12 @@ pColorPickerContrast.addEventListener('input', function(event) {
 
 bCan.width = window.innerWidth/settings.conSize
 bCan.height = window.innerHeight;
-var player = {hp:100,air:100,repairCharges:8,dizzy:0,rearCD:0,cameraThrow:0,cameraThrowX:0,cameraThrowY:0,cCon:false,droneKills:0,credits:1000,jobs:[],driving:true,visionRadius:45,docked:false,dCool:0,typing:false,dockedStation:null,upgrades:{controlPanel:{installed:true,cost:500,des:"Ctrl_panel"}},inCrisis:false,astroidKills:0,fired:false,pendingWarnings:[],speed:0.00165,living:Date.now(),paint:{using:true,type:paint.full,color:0,saturation:100,brightness:100,contrast:100},scanning:false,scan:{fighterDrone:0,astroid:0,turret:0},scanAck:false}
+var player = {hp:100,air:100,repairCharges:8,dizzy:0,rearCD:0,cameraThrow:0,cameraThrowX:0,cameraThrowY:0,cCon:false,droneKills:0,credits:1000,jobs:[],driving:true,visionRadius:45,docked:false,dCool:0,typing:false,dockedStation:null,upgrades:{controlPanel:{installed:true,cost:500,des:"Ctrl_panel"}},inCrisis:false,astroidKills:0,fired:false,pendingWarnings:[],speed:0.00165,living:Date.now(),paint:{using:true,type:paint.full,color:0,saturation:100,brightness:100,contrast:100},scanning:false,scan:{fighterDrone:0,astroid:0,turret:0},scanAck:false,combo:0}
 var xo
 var drone = {x:50,y:0,t:0,w:32,h:32,r:0,hp:100,sx:0,sy:0,r:0,mass:1,brakes:false,boostCool:0}
 var turnSpeed=0
 var MenuLayout = 0
-var upgradeDatabase={heavyArmor:{dmgRes:12,c:"armor",name:"Heavy Armor"},martianArmor:{dmgRes:7,c:"armor",name:"Vicerite Armor Armor" },heavyLaser:{dmgRes:2,c:"laser",name:"Proton Missile",projType:"seekerOrb"},boostDrive:{dmgRes:1,c:"secondary",name:"Boost Drive"},boostDrive:{dmgRes:1,c:"secondary",name:"ProtonSeeker"},boostDrive:{dmgRes:1,c:"secondary",name:"Boost Drive"},pusher:{dmgRes:1,c:"laser",name:"Push Cannon",projType:"push",dmg:0},gravChaff:{dmgRes:1,c:"secondary",name:"Gravity Chaffs"},lightLas:{dmgRes:1,heatAdd:1,dmg:0.1,c:"laser",name:"Light laser"},spreadShot:{dmgRes:1,heatAdd:30,dmg:30,c:"laser",name:"Spreadshot Laser",projType:"shotgun"},ram:{dmgRes:13,c:"laser",name:"Ram Plate"},marsComputer:{dmgRes:1.4,sentient:true,c:"shipComputer",name:"Martian Computer"},ram:{dmgRes:13,c:"laser",name:"Ram Plate"}}
+var upgradeDatabase={heavyArmor:{dmgRes:12,c:"armor",name:"Heavy Armor"},martianArmor:{dmgRes:7,c:"armor",name:"Vicerite Armor Armor" },heavyLaser:{dmgRes:2,c:"laser",name:"Proton Missile",projType:"seekerOrb"},boostDrive:{dmgRes:1,c:"secondary",name:"Boost Drive"},boostDrive:{dmgRes:1,c:"secondary",name:"ProtonSeeker"},boostDrive:{dmgRes:1,c:"secondary",name:"Boost Drive"},pusher:{dmgRes:1,c:"laser",name:"Push Cannon",projType:"push",dmg:0},gravChaff:{dmgRes:1,c:"secondary",name:"Gravity Chaffs"},lightLas:{dmgRes:1,heatAdd:1,dmg:1,c:"laser",name:"Light laser"},spreadShot:{dmgRes:1,heatAdd:30,dmg:30,c:"laser",name:"Spreadshot Laser",projType:"shotgun"},ram:{dmgRes:13,c:"laser",name:"Ram Plate"},marsComputer:{dmgRes:1.4,sentient:true,c:"shipComputer",name:"Martian Computer"},ram:{dmgRes:13,c:"laser",name:"Ram Plate"},repiercer:{dmgRes:1.2,heatAdd:35,dmg:15,c:"laser",name:"Repiercer Laser",projType:"repiercer"}}
 //0=home
 //1=station
 //2=personal stats
@@ -493,7 +493,7 @@ var mpcReady=false
 var mapsubtype=0
 var bkRendered=true
 //sentient computer lines, but you can just call me 'scom lines'
-var scomlines={limp:["I think somethings broken!","Can we use a repair kit or something please?","I think theres a chunk of me missing somewhere..","man that STILL hurts."],hurt:["Ow.","dodge it! dodge it!","That burns really badly","Oof","Taking damage..","OW!"],brainDamage:["I feel so dizzy..","something isnt right, i feel super off..","My brains hurting..","I feel like i can somehow vomit","Where are we again??"],lowFuel:["I'm hungry, can i get some food soon?","My fueltank hungers.","I'm hungry","Some more plasma would be nice"],lowAir:["Oh my god can you breahte in there??","Hold on dont die on me!","Hang in there, im trying to fix it!"],docked:["Finnaly, home again!","Oh! Can we take a break now while we're here?","Back home.","We're back allready?","Can i get some new upgrades? preferably martian parts?"],partAdded:["Always nice to try something new!","Feels nice!","Wish i had a mirror or something to see myself, i bet i look cool as hell!", "OOooOOo","The controls on this thing are weird","OoOOo shiny!"],badpartAdded:["Alittle crusty but im sure its fine.","How old is this?","Wait that works?","I guess you get what you paid for..","You arent going to install that, are yo- you are going to install that, ok."],idle:["Where are we going?","Whats the plan?","i was gonna say something, but i forgot.","Do you sometimes just look out at space?? i do"],die:["I DONT WAN-","Oh god OH G-","Uh O-","NO! HElP M-","..Pleas-","STO-","Im sor-","Goodby-"],kill:["Got one!","Nice shot!","BOOM!","Nice!","Man that drone got anihalated!","Fireworks!!","We're so good at this", "thats one drone down.."],trySave:["That should buy you some more time! /%<>^cockpit/%"],alone:["No drones i guess.", "So empty..","Just us here", "NOTHING?? NOBODY??","Booorinnggg","Wow litteraly nothing is here","Are we outside of the field or something?, where is everything?"]}
+var scomlines={limp:["I think somethings broken!","Can we use a repair kit or something please?","I think theres a chunk of me missing somewhere..","man that STILL hurts."],hurt:["Ow.","dodge it! dodge it!","That burns really badly","Oof","Taking damage..","OW!"],brainDamage:["I feel so dizzy..","something isnt right, i feel super off..","My brains hurting..","I feel like i can somehow vomit","Where are we again??"],lowFuel:["I'm hungry, can i get some food soon?","My fueltank hungers.","I'm hungry","Some more plasma would be nice"],lowAir:["Oh my god can you breahte in there??","Hold on dont die on me!","Hang in there, im trying to fix it!"],docked:["Finnaly, home again!","Oh! Can we take a break now while we're here?","Back home.","We're back allready?","Can i get some new upgrades? preferably martian parts?"],partAdded:["Always nice to try something new!","Feels nice!","Wish i had a mirror or something to see myself, i bet i look cool as hell!", "OOooOOo","The controls on this thing are weird","OoOOo shiny!"],badpartAdded:["Alittle crusty but im sure its fine.","How old is this?","Wait that works?","I guess you get what you paid for..","You arent going to install that, are yo- you are going to install that, ok."],idle:["Where are we going?","Whats the plan?","i was gonna say something, but i forgot.","Do you sometimes just look out at space?? i do"],die:["I DONT WAN-","Oh god OH G-","Uh O-","NO! HElP M-","..Pleas-","STO-","Im sor-","Goodby-"],kill:["Got one!","Nice shot!","BOOM!","Nice!","Man that drone got anihalated!","Fireworks!!","We're so good at this", "thats one drone down.."],trySave:["That should buy you some more time! /%<>^cockpit/%"],alone:["No drones i guess.", "So empty..","Just us here", "NOTHING?? NOBODY??","Booorinnggg","Wow litteraly nothing is here","Are we outside of the field or something?, where is everything?"],rapSnitches:["You CALLED them HERE!??","Bring it on!","Cool, they're coming here now.","i hope we just really need the money..","You arent doing this for fun are you?"]}
 //make him occasionally run commands, like $job to check things,
 //command prefix is /%<>@las rate 10/%
 //new line prefix is /&
@@ -1218,6 +1218,15 @@ pushConMsg("Repair charges: "+player.repairCharges+"/8")
 if (txt=="lidar"||txt=="lines"||txt=="lidarmode"){
 settings.lidar=!settings.lidar
 }
+//there are alot of keywords because i want the player to be able to find this on their own
+if (txt=="expose"||txt=="snitch"||txt=="scream"||txt=="yell"||txt=="challenge"||txt=="shout"||txt=="drones"){
+pushConMsg("Copying reinforcement signal..")
+scomSay("rapSnitches")
+aAmnt=random(1,5)
+for (let i16 = 0; i16 < aAmnt; i16++) {
+sendDrone()
+}
+}
 if (txt=="scan"||txt=="radar"||txt=="sc"){
 console.log("All the ents",renderedEnts)
 if (renderedEnts.length>0){
@@ -1383,7 +1392,7 @@ two solid blocks of anti-neutronium, and an explosive rock we found!`},{des:"Rep
 {des:"Light_Laser",amnt:1,cost:650,cd:"lightLas",ref:"lightLas",upgrade:true,catagory:"upgrades",desc:`A laser made for continuious laser, its increadibly weak, but can support extremely high fire rates.`},
 {des:"Spreadshot_Laser",amnt:1,cost:700,cd:"spreadShot",ref:"spreadShot",upgrade:true,catagory:"upgrades",desc:`It's really just a standard laser gun but with a smashed/broken lens.
 its unclear whether the breaking of the lens was deliberate or accidental, but it was probably on acccident.`},
-{des:"Martian_Computer",amnt:1,cost:800,cd:"marsComputer",ref:"marsComputer",upgrade:true,catagory:"upgrades",desc:`A martian artifacts brains, niiicely stuffed into your ship computer slot, its better at mostly everything due to basicly just being a living brain, may cause your ship to become sentient, and-or saipiant`}]
+{des:"Martian_Computer",amnt:1,cost:800,cd:"marsComputer",ref:"marsComputer",upgrade:true,catagory:"upgrades",desc:`A martian artifacts brains, niiicely stuffed into your ship computer slot, its better at mostly everything due to basicly just being a living brain, may cause your ship to become sentient, and-or saipiant`},{des:"Repiercer_Laser",amnt:1,cost:780,cd:"repiercer",ref:"repiercer",upgrade:true,catagory:"upgrades",desc:`This laser has a special system that will aim at the last shot position on a target, deals more damage the more shots you hit. but will loose all of it when you miss, and deals half base damage by default. `}]
 const easingAmount = 0.05; 
 
 
@@ -2505,11 +2514,11 @@ if (getDist(curr.x,curr.y,drone.x,drone.y)>1000){
 					
 				//shitty follow if far away enough 
 				if (curr.type=="fighterDrone"&&(curr.targ.important||curr.targ.memory>0)){
-				curr.targ.memory=Math.max(0,curr.targ.memory-0.01)
+				//curr.targ.memory=Math.max(0,curr.targ.memory-0.01)
 				
 				chaseDir=pointAt(curr.x,curr.y,curr.targ.x,curr.targ.y)+Math.PI
-				curr.sx+=Math.sin(chaseDir)*0.02;
-				curr.sy+=Math.cos(chaseDir)*0.02;
+				curr.sx+=(Math.sin(chaseDir)*0.02)/Math.max((curr.sx+curr.sy)/10,1)
+				curr.sy+=(Math.cos(chaseDir)*0.02)/Math.max((curr.sx+curr.sy)/10,1)
 				curr.sx/=1.01;curr.sy/=1.01;
 				} else if(curr.type=="fighterDrone"){curr.sx/=1.01;curr.sy/=1.01;
 				dist=getDist(curr.x,curr.y,curr.targ.x,curr.targ.y)
@@ -2596,7 +2605,8 @@ curr.sy=0
 curr.cool-=1
 curr.targ.memory=Math.max(curr.targ.memory-1,0)
 dist=getDist(curr.x+curr.sx,curr.y+curr.sy,drone.x+drone.sx,drone.y+drone.sy)
-if (dist>640){curr.targ.memory=3000}
+
+if (dist<1650){curr.targ.memory=3000;if(curr.subtype=="minigun"){console.log("Hi im a minigun drone and i have dementia")}}
 arrivalTime=dist/10
 if (curr.targ.memory>0||dist<3000&&avrgDamage>30) {
 //not that 1t I2NT imp0rtant but my brain is w31rd, so i g0tta s3t it 0ff.
@@ -2616,7 +2626,7 @@ while (diff > Math.PI) {diff -=Math.PI*2}
 
 
 
-curr.tt+=Math.sign(diff)/250
+curr.tt+=Math.sign(diff)/125
 //y0uR d0n3 N0w BUD
 //if(diff<0.0001||settings.sharpShooterDrones){curr.tt=curr.targ.t} -- no, because this can cause it to suddenly become perfect at thier turning speed at random
 
@@ -2669,10 +2679,12 @@ curr.targ.memory=Math.max(curr.targ.memory-1,0)
 if(curr.health<0){
 dCount=random(4,14)
 targDist=getDist(curr.targ.x,curr.targ.y,curr.x,curr.y)
+
 //have i reached an important spot?
 if (targDist<300) {
 curr.targ.important=false
 }
+if (curr.targ.important){curr.targ.memory=300}
 curr.t+=curr.dieSpinDir*2
 curr.sx+=Math.sin(curr.t)*(curr.thrust)
 curr.sy+=Math.cos(curr.t)*(curr.thrust)
@@ -2728,13 +2740,14 @@ while (diff > Math.PI) {diff -=Math.PI*2}
 
 
 
-curr.tt+=Math.sign(diff/Math.exp(Math.abs(diff)))/adaptSpeed
+curr.tt+=Math.sign(diff/Math.exp(Math.abs(diff)))/(adaptSpeed*4)
 //y0uR d0n3 N0w BUD
 //if(diff<0.0001||settings.sharpShooterDrones){curr.tt=curr.targ.t}
 
 speedDiff=getDist(drone.sx,drone.sy,curr.sx,curr.sy)
 dist2=getDist(curr.targ.x,curr.targ.y,curr.x,curr.y)
-curr.thrust=((0.02+Math.min(dist2/3000,0.03))*Math.max(0.9,speedDiff))/Math.max(5+Math.abs(diff),1)
+turnDist = Math.max(Math.abs(curr.tt - curr.targ.t),1)
+curr.thrust=(0.02+turnDist/1800)
 
 if (curr.missileChasing) {//OH FUCK!!!
 curr.thrust=Math.max((0.05*Math.max(0.9,speedDiff))/Math.max(5+Math.abs(diff),1),0.03)
@@ -2783,6 +2796,7 @@ if (settings.lasersHurt){
 giveDamage(20,10)
 }
 curr.hit=true
+
 }
 curr.life-=1
 if(curr.lastype=="seekerOrb"&&curr.target){
@@ -2802,6 +2816,11 @@ debrisExplosion(curr.x,curr.y)
 
 }
 curr.remove=true
+if(curr.parent==drone&&!curr.hit&&curr.life<0&&systems.laser.projType=="repiercer"){
+player.combo=0
+pushMsg("Combo lost!")
+
+}
 }
 }
 if (curr.type=="debris") {
@@ -2916,6 +2935,10 @@ curr.sy-=Math.cos(las.t*-Math.PI/180)*50/curr.mass
 }
 
 las.hit=true
+if (las.parent==drone&&laser.settings[0].val>10&&systems.laser.projType=="repiercer"){
+player.combo+=1
+pushMsg("Combo at: "+player.combo)
+}
 curr.holes.push({x:las.x-curr.x,y:las.y-curr.y,r:random(3,10)})
 curr.health-=las.dmg
 curr.sx-=Math.sin(las.t*-Math.PI/180)*0.1/curr.mass
@@ -3298,11 +3321,7 @@ ctx.filter = oldFilt
 			gt+=1
 			//console.log(speedDiff)
 			//making sure the cooldown is reset
-			if (colliding){
-			collided=true
-			}else{
-			collided=false
-			}
+collided=Math.max(0,collided-1)
 			
 			speedDiff=Math.abs((drone.sx-osx)+(drone.sy-osy))
 			}
@@ -3570,32 +3589,35 @@ prevDir=aDir
 // do you know how fast you were going back there?
 relativeSpeed = getDist(curr.sx,curr.sy,victim.sx,victim.sy)*2
 realRelativeSpeed = getDist(curr.sx,curr.sy,victim.sx,victim.sy)
+if(victim==drone){console.log(relativeSpeed,collided,curr.type!=="station")}
 
 
-
-if(relativeSpeed>0.2&&!collided&&curr.type!=="station"){
+if(relativeSpeed>1.6&&!collided&&curr.type!=="station"){
 
 if ((victim==drone||curr==drone)&&laser.types[laser.typeUsed]==upgradeDatabase.ram){ramMult=15}else{ramMult=1}
 console.log(relativeSpeed,relativeSpeed*(curr.mass/relativeSpeed)/ramMult)
 if (victim==drone){
-giveDamage(relativeSpeed*(curr.mass/relativeSpeed)/ramMult,Math.ceil(relativeSpeed))
+giveDamage((relativeSpeed*5)*(curr.mass/relativeSpeed)/ramMult,Math.ceil(relativeSpeed))
 }
 if (curr==drone) {
-giveDamage(relativeSpeed*(victim.mass/relativeSpeed)/ramMult,Math.ceil(relativeSpeed))
+giveDamage((relativeSpeed*5)*(victim.mass/relativeSpeed)/ramMult,Math.ceil(relativeSpeed))
 }
 
 
 if(victim.type=="fighterDrone"||victim.type=="astroid"){
-victim.health-=relativeSpeed*(curr.mass/relativeSpeed)*ramMult}
+victim.health-=(relativeSpeed*(curr.mass/relativeSpeed)*ramMult)/10}
 if(curr.type=="fighterDrone"||curr.type=="astroid"){
-curr.health-=relativeSpeed*(victim.mass/relativeSpeed)*ramMult}
+curr.health-=(relativeSpeed*(victim.mass/relativeSpeed)*ramMult)/10}
 
 
 
 
 
 }
-collided=true
+
+
+if(victim==drone){collided=10}
+
 
 victim.x=calX+(Math.sin((aDir)))*calR
 victim.y=calY+(Math.cos((aDir)))*calR
@@ -3789,8 +3811,8 @@ function fireLas(parent,acc,dmg,dir,type){
 turn = parent.t
 stop=false
 if (true){ // usualy should be (type!=="ray"), but due to debugging purpouses it is currently disabled.
-if (parent==drone&&laser.typeUsed=="ram"){stop=true}
-if (!stop){
+if (parent==drone&&laser.typeUsed=="ram"){return}
+if (true){
 if(!type){type="basic"}
 
 if (parent.tt){turn=parent.tt}
@@ -3804,7 +3826,7 @@ mass=0.1
 if (type=="push"){dmg=0;mass=1200;console.log("Poosh")}
 if (type=="fatfuck"){bulletSpeed=1;dmg+=20;pw=16;console.log("FATFUCK DETECTED!!",type);}
 if (type=="seekerOrb"){dmg+=35;life=500;bulletSpeed=2;pwidth=12;dmg+=75;pw=16;console.log("MISSILE",type);sprite=sprk1}
-
+if (type=="repiercer"){dmg*=Math.max(0,Math.round((player.combo)))}//HEADSHOT, HEADSHOT x2, KILLING SPREE x3
 
 if (type=="shotgun"){
 spreadCount=6
